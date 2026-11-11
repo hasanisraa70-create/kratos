@@ -1,4 +1,7 @@
 import React from 'react';
+import logoDark from '../../assets/kratos-logo-dark.png';
+import logoWhite from '../../assets/kratos-logo-white.png';
+import logoGold from '../../assets/kratos-logo-gold.png';
 
 interface BrandLogoProps {
   variant?: 'light' | 'dark' | 'gold';
@@ -10,79 +13,35 @@ interface BrandLogoProps {
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   variant = 'light',
   size = 'md',
-  showSubtitle = true,
   className = '',
 }) => {
-  const isDark = variant === 'dark';
-  const isGold = variant === 'gold';
+  const getLogoSrc = () => {
+    switch (variant) {
+      case 'dark':
+        return logoDark;
+      case 'gold':
+        return logoGold;
+      case 'light':
+      default:
+        return logoWhite;
+    }
+  };
 
-  const textColor = isGold
-    ? 'text-[#C6A66B]'
-    : isDark
-    ? 'text-[#101010]'
-    : 'text-white';
-
-  const subColor = isGold
-    ? 'text-[#EAD7A1]'
-    : isDark
-    ? 'text-[#777777]'
-    : 'text-[#A0A0A0]';
-
-  const iconSize = {
-    sm: 18,
-    md: 24,
-    lg: 32,
-    xl: 44,
-  }[size];
-
-  const fontSize = {
-    sm: 'text-sm tracking-[0.2em]',
-    md: 'text-base tracking-[0.25em]',
-    lg: 'text-xl tracking-[0.3em]',
-    xl: 'text-3xl tracking-[0.35em]',
-  }[size];
-
-  const subFontSize = {
-    sm: 'text-[7px]',
-    md: 'text-[9px]',
-    lg: 'text-[11px]',
-    xl: 'text-[13px]',
+  const sizeClasses = {
+    sm: 'h-8 max-w-[150px]',
+    md: 'h-10 max-w-[180px]',
+    lg: 'h-14 max-w-[220px]',
+    xl: 'h-20 max-w-[280px]',
   }[size];
 
   return (
-    <div className={`inline-flex items-center gap-2.5 ${className}`}>
-      {/* Kratos Precision Chevron / Carbon Monogram Mark */}
-      <svg
-        width={iconSize}
-        height={iconSize}
-        viewBox="0 0 32 32"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0 transition-transform hover:scale-105"
-      >
-        <path
-          d="M6 4L16 16L6 28H11L18.5 19L26 28H31L20.5 16L30 4H25L17.5 13L10.5 4H6Z"
-          fill={isGold ? '#C6A66B' : isDark ? '#101010' : '#FFFFFF'}
-        />
-        <path
-          d="M16 16L19 12.5L22 16L16 23.5L10 16L13 12.5L16 16Z"
-          fill={isGold ? '#EAD7A1' : '#C6A66B'}
-          opacity="0.9"
-        />
-      </svg>
-
-      <div className="flex flex-col leading-none">
-        <span className={`font-black uppercase font-mono ${fontSize} ${textColor}`}>
-          KRATOS
-        </span>
-        {showSubtitle && (
-          <span
-            className={`font-semibold uppercase tracking-[0.32em] mt-0.5 ${subFontSize} ${subColor}`}
-          >
-            PERFORMANCE SYSTEMS
-          </span>
-        )}
-      </div>
+    <div className={`inline-flex items-center select-none ${className}`}>
+      <img
+        src={getLogoSrc()}
+        alt="KRATOS - Carbon Insoles Engineered For Performance"
+        className={`${sizeClasses} w-auto object-contain transition-all duration-200 hover:scale-[1.02] drop-shadow-xs`}
+        loading="eager"
+      />
     </div>
   );
 };

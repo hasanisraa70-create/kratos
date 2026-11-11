@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Compass, Sliders, Package, User } from 'lucide-react';
+import { Home, Compass, Sliders, Package } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ScreenId } from '../../types';
 
@@ -18,7 +18,6 @@ export const BottomNav: React.FC = () => {
     { id: 'shop', label: 'Shop', icon: Compass },
     { id: 'customize', label: 'Customize', icon: Sliders },
     { id: 'order-tracking', label: 'Orders', icon: Package },
-    { id: 'profile', label: 'Profile', icon: User },
   ];
 
   return (
