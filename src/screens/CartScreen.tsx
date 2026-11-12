@@ -83,34 +83,22 @@ export const CartScreen: React.FC = () => {
       </div>
 
       <div className="px-4 py-4 space-y-4 flex-1">
-        {/* FREE SHIPPING PROGRESS BAR */}
+        {/* STALL PICKUP BADGE */}
         <div
-          className={`p-3 rounded-2xl border space-y-2 transition-colors ${
-            isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-[#16171b] border-white/10'
+          className={`p-3 rounded-2xl border space-y-1 transition-colors ${
+            isLight ? 'bg-amber-50/70 border-amber-200 text-amber-950' : 'bg-amber-950/20 border-amber-500/20 text-amber-200'
           }`}
         >
-          <div className="flex items-center justify-between text-xs">
-            <span className={`flex items-center gap-1.5 ${isLight ? 'text-gray-700 font-medium' : 'text-zinc-300'}`}>
+          <div className="flex items-center justify-between text-xs font-bold uppercase font-mono">
+            <span className="flex items-center gap-1.5">
               <Truck className="w-3.5 h-3.5 text-[#C6A66B]" />
-              <span>
-                {amountToFreeShipping === 0
-                  ? 'FREE PRIORITY SHIPPING UNLOCKED'
-                  : `Add $${amountToFreeShipping.toFixed(2)} for FREE Express Delivery`}
-              </span>
+              <span>STALL COUNTER DIRECT COLLECTION</span>
             </span>
-            <span className="font-mono text-[10px] text-[#A38448] font-bold">
-              {Math.min(100, Math.round((cartSubtotal / freeShippingThreshold) * 100))}%
-            </span>
+            <span className="text-emerald-600 font-bold">FREE PICKUP</span>
           </div>
-
-          <div className={`h-1.5 w-full rounded-full overflow-hidden ${isLight ? 'bg-gray-200' : 'bg-zinc-800'}`}>
-            <div
-              className="h-full bg-gradient-to-r from-[#C6A66B] to-[#F1E4C3] transition-all duration-300"
-              style={{
-                width: `${Math.min(100, (cartSubtotal / freeShippingThreshold) * 100)}%`,
-              }}
-            />
-          </div>
+          <p className="text-[10px] opacity-80">
+            Collect immediately at Kratos Exhibition Booth 4B upon order confirmation.
+          </p>
         </div>
 
         {/* CART ITEMS LIST */}

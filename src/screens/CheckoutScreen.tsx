@@ -5,69 +5,241 @@ import {
   CreditCard, 
   ShieldCheck, 
   Check, 
-  Truck, 
   Lock, 
   CheckCircle2, 
   ArrowRight,
-  PackageCheck
+  PackageCheck,
+  User,
+  Phone,
+  Mail,
+  FileText,
+  Plus,
+  Minus,
+  Sparkles,
+  QrCode,
+  RotateCcw,
+  AlertCircle
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Order } from '../types';
 
 export const CheckoutScreen: React.FC = () => {
-  const { cart, cartSubtotal, placeOrder, setCurrentScreen, showToast, theme } = useApp();
+  const { 
+    cart, 
+    cartSubtotal, 
+    placeStallOrder, 
+    setCurrentScreen, 
+    resetStallSession,
+    showToast, 
+    theme 
+  } = useApp();
   const isLight = theme === 'light';
 
-  const [email, setEmail] = useState('marcus.vance@athlete.com');
-  const [phone, setPhone] = useState('+1 (503) 555-0192');
+  // Guest Customer Form Information (Physical Stall Optimized)
   const [fullName, setFullName] = useState('Marcus Vance');
-  const [street, setStreet] = useState('742 Evergreen Terrace, Apt 4B');
-  const [city, setCity] = useState('Portland');
-  const [state, setState] = useState('OR');
-  const [zip, setZip] = useState('97201');
+  const [phone, setPhone] = useState('+1 (503) 555-0192');
+  const [email, setEmail] = useState('');
+  const [notes, setNotes] = useState('Pick up at Kratos Exhibition Stall 4B');
+  const [quantity, setQuantity] = useState(1);
 
-  const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('standard');
-  const [paymentMethod, setPaymentMethod] = useState<'apple-pay' | 'card' | 'google-pay'>('apple-pay');
-
-  const [cardNumber, setCardNumber] = useState('•••• •••• •••• 4242');
-  const [cardExpiry, setCardExpiry] = useState('08/28');
-  const [cardCvc, setCardCvc] = useState('883');
-
-  const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+  // Payment Selection Modal
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'qr' | 'counter'>('card');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const shippingCost = shippingMethod === 'express' ? 9.99 : 0;
-  const total = cartSubtotal + shippingCost;
+  // Placed order result state
+  const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
 
-  const handlePlaceOrder = () => {
-    if (!email || !fullName || !street || !city || !zip) {
-      showToast('Please fill out all required shipping fields', 'info');
+  // Calculate total based on items & quantity
+  const primaryItem = cart[0];
+  const unitPrice = primaryItem ? primaryItem.price : 89.0;
+  const totalAmount = unitPrice * quantity;
+
+  // Action 1: BUY NOW (Demo Payment Flow)
+  const handleProceedBuyNow = () => {
+    if (!fullName.trim() || !phone.trim()) {
+      showToast('Please enter customer name and phone number', 'info');
+      return;
+    }
+    setShowPaymentModal(true);
+  };
+
+  const handleConfirmDemoPayment = () => {
+    setIsSubmitting(true);
+    setTimeout(() => {
+      const order = placeStallOrder({
+        customerName: fullName.trim(),
+        phone: phone.trim(),
+        email: email.trim() || undefined,
+        notes: notes.trim() || undefined,
+        paymentMethod: selectedPaymentMethod === 'card' 
+          ? 'Contactless Card (Demo)' 
+          : selectedPaymentMethod === 'qr' 
+          ? 'UPI / QR Scan (Demo)' 
+          : 'Demo Payment',
+        paymentStatus: 'Paid (Demo)',
+      });
+
+      setPlacedOrder(order);
+      setIsSubmitting(false);
+      setShowPaymentModal(false);
+
+      // Gold celebratory confetti
+      confetti({
+        particleCount: 85,
+        spread: 75,
+        origin: { y: 0.6 },
+        colors: ['#C6A66B', '#FFFFFF', '#111111', '#F1E4C3'],
+      });
+    }, 700);
+  };
+
+  // Action 2: PLACE ORDER (Pay / Confirm at Stall)
+  const handlePlaceOrderAtStall = () => {
+    if (!fullName.trim() || !phone.trim()) {
+      showToast('Please enter customer name and phone number', 'info');
       return;
     }
 
     setIsSubmitting(true);
     setTimeout(() => {
-      const order = placeOrder(
-        { fullName, street, city, state, zip },
-        paymentMethod,
-        0
-      );
+      const order = placeStallOrder({
+        customerName: fullName.trim(),
+        phone: phone.trim(),
+        email: email.trim() || undefined,
+        notes: notes.trim() || undefined,
+        paymentMethod: 'Pay at Stall Counter',
+        paymentStatus: 'Pending at Stall',
+      });
+
       setPlacedOrder(order);
       setIsSubmitting(false);
 
-      // Trigger athletic gold celebration confetti
       confetti({
-        particleCount: 80,
-        spread: 70,
+        particleCount: 50,
+        spread: 60,
         origin: { y: 0.6 },
-        colors: ['#C6A66B', '#FFFFFF', '#222222', '#F1E4C3'],
+        colors: ['#C6A66B', '#FFFFFF', '#222222'],
       });
-    }, 900);
+    }, 600);
   };
+
+  // Order Confirmation View
+  if (placedOrder) {
+    return (
+      <div
+        className={`flex-1 flex flex-col p-5 space-y-6 transition-colors ${
+          isLight ? 'bg-[#F9FAFB] text-gray-900' : 'bg-[#101010] text-white'
+        }`}
+      >
+        <div className="text-center pt-4 space-y-2">
+          <div className="w-14 h-14 rounded-full bg-[#C6A66B]/20 border border-[#C6A66B] flex items-center justify-center mx-auto text-[#C6A66B]">
+            <CheckCircle2 className="w-8 h-8 stroke-[2.5]" />
+          </div>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#A38448] font-bold block">
+            STALL ORDER GENERATED
+          </span>
+          <h1 className="text-xl font-black uppercase tracking-tight">
+            ORDER CONFIRMED!
+          </h1>
+          <p className={`text-xs ${isLight ? 'text-gray-600' : 'text-zinc-400'}`}>
+            Thank you, {placedOrder.customerInfo?.fullName}. Your order is registered in the booth production queue.
+          </p>
+        </div>
+
+        {/* ORDER REFERENCE TICKET CARD */}
+        <div
+          className={`p-4 rounded-3xl border space-y-4 shadow-xl transition-colors ${
+            isLight ? 'bg-white border-gray-200' : 'bg-[#15161a] border-white/10'
+          }`}
+        >
+          <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+            <div>
+              <span className="text-[10px] font-mono text-gray-500 uppercase block">
+                ORDER REFERENCE NUMBER
+              </span>
+              <span className="text-lg font-mono font-black text-[#A38448]">
+                {placedOrder.id}
+              </span>
+            </div>
+            <span
+              className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase ${
+                placedOrder.paymentStatus === 'Paid (Demo)'
+                  ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/30'
+                  : 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
+              }`}
+            >
+              {placedOrder.paymentStatus}
+            </span>
+          </div>
+
+          <div className="space-y-2 text-xs font-mono">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Customer:</span>
+              <span className="font-bold">{placedOrder.customerInfo?.fullName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Mobile Phone:</span>
+              <span className="font-bold">{placedOrder.customerInfo?.phone}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Items Ordered:</span>
+              <span className="font-bold">{placedOrder.items[0]?.name || 'Custom Insole'} (x{quantity})</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Collection Point:</span>
+              <span className="font-bold text-[#A38448]">Kratos Stall Booth 4B</span>
+            </div>
+            <div className="flex justify-between pt-2 border-t border-gray-100 text-sm">
+              <span className="font-bold">Total Amount:</span>
+              <span className="font-black text-[#A38448]">${placedOrder.total.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div
+            className={`p-2.5 rounded-xl border text-[11px] flex items-center gap-2 ${
+              isLight ? 'bg-amber-50/70 border-amber-200 text-amber-900' : 'bg-amber-950/20 border-amber-500/20 text-amber-200'
+            }`}
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 text-[#C6A66B]" />
+            <span>
+              {placedOrder.paymentStatus === 'Paid (Demo)'
+                ? 'Demo transaction recorded. Please pick up your insole when announced at Booth 4B.'
+                : 'Present your Order # at counter to complete payment and collect your customized insoles.'}
+            </span>
+          </div>
+        </div>
+
+        {/* ACTIONS */}
+        <div className="space-y-2 pt-2">
+          <button
+            onClick={() => setCurrentScreen('order-tracking')}
+            className="w-full py-3.5 px-4 rounded-2xl bg-[#C6A66B] hover:bg-[#D4B579] text-black font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg active:scale-98 flex items-center justify-center gap-2"
+          >
+            <PackageCheck className="w-4 h-4" />
+            <span>TRACK PRODUCTION STATUS</span>
+          </button>
+
+          {/* Critical Stall Reset for Next Customer */}
+          <button
+            onClick={resetStallSession}
+            className={`w-full py-3 px-4 rounded-2xl border font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+              isLight
+                ? 'bg-white hover:bg-gray-100 border-gray-300 text-gray-800'
+                : 'bg-white/10 hover:bg-white/15 border-white/20 text-white'
+            }`}
+          >
+            <RotateCcw className="w-4 h-4 text-[#C6A66B]" />
+            <span>START NEXT CUSTOMER SESSION</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
-      className={`flex-1 flex flex-col pb-24 transition-colors ${
+      className={`flex-1 flex flex-col pb-36 transition-colors ${
         isLight ? 'bg-[#F9FAFB] text-gray-900' : 'bg-[#101010] text-white'
       }`}
     >
@@ -80,7 +252,7 @@ export const CheckoutScreen: React.FC = () => {
         }`}
       >
         <button
-          onClick={() => setCurrentScreen('cart')}
+          onClick={() => setCurrentScreen('shop')}
           className={`p-1 rounded-full transition-colors ${
             isLight ? 'text-gray-600 hover:text-black hover:bg-gray-100' : 'text-zinc-400 hover:text-white'
           }`}
@@ -89,433 +261,293 @@ export const CheckoutScreen: React.FC = () => {
         </button>
 
         <span className={`text-xs font-mono font-bold uppercase tracking-wider ${isLight ? 'text-gray-900' : 'text-white'}`}>
-          CHECKOUT & PAYMENT
+          EXHIBITION STALL CHECKOUT
         </span>
 
-        <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-600 font-bold">
-          <Lock className="w-3 h-3" />
-          <span>256-BIT ENCRYPTION</span>
-        </div>
+        <span className="text-[10px] font-mono text-[#A38448] font-bold">
+          BOOTH 4B
+        </span>
       </div>
 
       <div className="px-4 py-4 space-y-4 flex-1">
-        {/* SECTION 1: CONTACT INFORMATION */}
-        <section
-          className={`p-4 rounded-2xl border space-y-3 transition-colors ${
-            isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-[#16171b] border-white/10'
+        {/* GUEST CUSTOMER FORM (NO REGISTRATION REQUIRED) */}
+        <div
+          className={`p-4 rounded-2xl border space-y-3.5 transition-colors ${
+            isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-[#15161a] border-white/10'
           }`}
         >
-          <div className="flex justify-between items-center">
-            <span className="text-[10px] font-mono text-[#A38448] uppercase font-bold tracking-wider">
-              1. CONTACT INFORMATION
-            </span>
-            <span className={`text-[10px] font-mono ${isLight ? 'text-gray-400' : 'text-zinc-400'}`}>ATHLETE PROFILE</span>
+          <div className="flex items-center justify-between pb-1 border-b border-gray-100">
+            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#A38448]">
+              ATHLETE CONTACT INFORMATION (GUEST)
+            </h2>
+            <span className="text-[9px] font-mono text-gray-400">NO SIGNUP REQUIRED</span>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div>
-              <label className={`text-[10px] font-mono uppercase block mb-1 ${isLight ? 'text-gray-600 font-semibold' : 'text-zinc-400'}`}>
-                Email for Tracking Updates
+              <label className={`text-[11px] font-bold uppercase block mb-1 ${isLight ? 'text-gray-700' : 'text-zinc-300'}`}>
+                Full Name *
               </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#C6A66B] transition-colors ${
-                  isLight
-                    ? 'bg-gray-50 border-gray-300 text-gray-900 focus:bg-white'
-                    : 'bg-black/60 border-white/15 text-white'
-                }`}
-              />
-            </div>
-            <div>
-              <label className={`text-[10px] font-mono uppercase block mb-1 ${isLight ? 'text-gray-600 font-semibold' : 'text-zinc-400'}`}>
-                Mobile Phone
-              </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#C6A66B] transition-colors ${
-                  isLight
-                    ? 'bg-gray-50 border-gray-300 text-gray-900 focus:bg-white'
-                    : 'bg-black/60 border-white/15 text-white'
-                }`}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 2: SHIPPING ADDRESS */}
-        <section
-          className={`p-4 rounded-2xl border space-y-3 transition-colors ${
-            isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-[#16171b] border-white/10'
-          }`}
-        >
-          <span className="text-[10px] font-mono text-[#A38448] uppercase font-bold tracking-wider block">
-            2. DELIVERY ADDRESS
-          </span>
-
-          <div className="space-y-2">
-            <div>
-              <label className={`text-[10px] font-mono uppercase block mb-1 ${isLight ? 'text-gray-600 font-semibold' : 'text-zinc-400'}`}>
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#C6A66B] transition-colors ${
-                  isLight
-                    ? 'bg-gray-50 border-gray-300 text-gray-900 focus:bg-white'
-                    : 'bg-black/60 border-white/15 text-white'
-                }`}
-              />
-            </div>
-            <div>
-              <label className={`text-[10px] font-mono uppercase block mb-1 ${isLight ? 'text-gray-600 font-semibold' : 'text-zinc-400'}`}>
-                Street Address
-              </label>
-              <input
-                type="text"
-                value={street}
-                onChange={(e) => setStreet(e.target.value)}
-                className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#C6A66B] transition-colors ${
-                  isLight
-                    ? 'bg-gray-50 border-gray-300 text-gray-900 focus:bg-white'
-                    : 'bg-black/60 border-white/15 text-white'
-                }`}
-              />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className={`text-[10px] font-mono uppercase block mb-1 ${isLight ? 'text-gray-600 font-semibold' : 'text-zinc-400'}`}>
-                  City
-                </label>
+              <div className="relative">
+                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className={`w-full border rounded-xl px-2.5 py-2 text-xs focus:outline-none focus:border-[#C6A66B] transition-colors ${
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Marcus Vance"
+                  className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs border focus:outline-none focus:border-[#C6A66B] ${
                     isLight
-                      ? 'bg-gray-50 border-gray-300 text-gray-900 focus:bg-white'
-                      : 'bg-black/60 border-white/15 text-white'
+                      ? 'bg-gray-50 border-gray-300 text-gray-900'
+                      : 'bg-[#101010] border-white/15 text-white'
                   }`}
                 />
               </div>
-              <div>
-                <label className={`text-[10px] font-mono uppercase block mb-1 ${isLight ? 'text-gray-600 font-semibold' : 'text-zinc-400'}`}>
-                  State
-                </label>
+            </div>
+
+            <div>
+              <label className={`text-[11px] font-bold uppercase block mb-1 ${isLight ? 'text-gray-700' : 'text-zinc-300'}`}>
+                Mobile Number *
+              </label>
+              <div className="relative">
+                <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
-                  type="text"
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                  className={`w-full border rounded-xl px-2.5 py-2 text-xs focus:outline-none focus:border-[#C6A66B] transition-colors ${
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+1 (503) 555-0192"
+                  className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs border focus:outline-none focus:border-[#C6A66B] ${
                     isLight
-                      ? 'bg-gray-50 border-gray-300 text-gray-900 focus:bg-white'
-                      : 'bg-black/60 border-white/15 text-white'
+                      ? 'bg-gray-50 border-gray-300 text-gray-900'
+                      : 'bg-[#101010] border-white/15 text-white'
                   }`}
                 />
               </div>
-              <div>
-                <label className={`text-[10px] font-mono uppercase block mb-1 ${isLight ? 'text-gray-600 font-semibold' : 'text-zinc-400'}`}>
-                  ZIP
-                </label>
+            </div>
+
+            <div>
+              <label className={`text-[11px] font-bold uppercase block mb-1 ${isLight ? 'text-gray-700' : 'text-zinc-300'}`}>
+                Email Address (Optional)
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
-                  type="text"
-                  value={zip}
-                  onChange={(e) => setZip(e.target.value)}
-                  className={`w-full border rounded-xl px-2.5 py-2 text-xs focus:outline-none focus:border-[#C6A66B] transition-colors ${
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="athlete@kratos.com"
+                  className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs border focus:outline-none focus:border-[#C6A66B] ${
                     isLight
-                      ? 'bg-gray-50 border-gray-300 text-gray-900 focus:bg-white'
-                      : 'bg-black/60 border-white/15 text-white'
+                      ? 'bg-gray-50 border-gray-300 text-gray-900'
+                      : 'bg-[#101010] border-white/15 text-white'
+                  }`}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={`text-[11px] font-bold uppercase block mb-1 ${isLight ? 'text-gray-700' : 'text-zinc-300'}`}>
+                Additional Instructions / Notes (Optional)
+              </label>
+              <div className="relative">
+                <FileText className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                <textarea
+                  rows={2}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g. Laser engraving: KRT-09, pickup after competition heat"
+                  className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs border focus:outline-none focus:border-[#C6A66B] ${
+                    isLight
+                      ? 'bg-gray-50 border-gray-300 text-gray-900'
+                      : 'bg-[#101010] border-white/15 text-white'
                   }`}
                 />
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* SECTION 3: SHIPPING METHOD */}
-        <section
+        {/* ORDER SUMMARY */}
+        <div
           className={`p-4 rounded-2xl border space-y-3 transition-colors ${
-            isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-[#16171b] border-white/10'
+            isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-[#15161a] border-white/10'
           }`}
         >
-          <span className="text-[10px] font-mono text-[#A38448] uppercase font-bold tracking-wider block">
-            3. SHIPPING SPEED
-          </span>
+          <div className="flex items-center justify-between pb-1 border-b border-gray-100">
+            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#A38448]">
+              SELECTED INSOLE SPECIFICATIONS
+            </h2>
+            <span className="text-[10px] font-mono text-emerald-600 font-bold">READY AT STALL</span>
+          </div>
 
-          <div className="space-y-2">
-            {[
-              {
-                id: 'standard',
-                name: 'FedEx Athletic Standard (3-5 Business Days)',
-                price: 'FREE',
-                cost: 0,
-              },
-              {
-                id: 'express',
-                name: 'FedEx Priority Overnight Air (1-2 Days)',
-                price: '$9.99',
-                cost: 9.99,
-              },
-            ].map((method) => {
-              const isSelected = shippingMethod === method.id;
-              return (
-                <div
-                  key={method.id}
-                  onClick={() => setShippingMethod(method.id as any)}
-                  className={`p-3 rounded-xl border cursor-pointer flex justify-between items-center transition-all ${
-                    isSelected
-                      ? isLight
-                        ? 'bg-[#FFFDF7] border-[#C6A66B] ring-1 ring-[#C6A66B]/50'
-                        : 'bg-[#18191e] border-[#C6A66B]'
-                      : isLight
-                      ? 'bg-gray-50 border-gray-200 text-gray-800'
-                      : 'bg-black/40 border-white/10 text-zinc-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                        isSelected
-                          ? 'border-[#C6A66B] bg-[#C6A66B] text-black'
-                          : isLight
-                          ? 'border-gray-400'
-                          : 'border-zinc-500'
-                      }`}
-                    >
-                      {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                    </span>
-                    <span className={`text-xs ${isLight ? 'text-gray-800' : 'text-zinc-200'}`}>{method.name}</span>
+          {primaryItem ? (
+            <div className="flex gap-3">
+              <img
+                src={primaryItem.image}
+                alt={primaryItem.name}
+                className="w-16 h-16 rounded-xl object-cover shrink-0"
+              />
+              <div className="flex-1 space-y-1">
+                <h3 className={`text-xs font-bold uppercase ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                  {primaryItem.name}
+                </h3>
+                <p className={`text-[10px] font-mono ${isLight ? 'text-gray-500' : 'text-zinc-400'}`}>
+                  Size: {primaryItem.size} • {primaryItem.colorName}
+                </p>
+
+                {primaryItem.customizationDetails && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {primaryItem.customizationDetails.arch && (
+                      <span className="px-1.5 py-0.2 rounded text-[8px] font-mono bg-black/5 text-[#A38448] font-bold">
+                        {primaryItem.customizationDetails.arch}
+                      </span>
+                    )}
+                    {primaryItem.customizationDetails.flex && (
+                      <span className="px-1.5 py-0.2 rounded text-[8px] font-mono bg-black/5 text-[#A38448] font-bold">
+                        {primaryItem.customizationDetails.flex}
+                      </span>
+                    )}
+                    {primaryItem.customizationDetails.engraving && (
+                      <span className="px-1.5 py-0.2 rounded text-[8px] font-mono bg-[#C6A66B]/20 text-[#A38448] font-bold">
+                        &quot;{primaryItem.customizationDetails.engraving}&quot;
+                      </span>
+                    )}
                   </div>
-                  <span className="text-xs font-mono font-bold text-[#A38448]">
-                    {method.price}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500">No insole configured yet.</p>
+          )}
 
-        {/* SECTION 4: PAYMENT METHOD */}
-        <section
-          className={`p-4 rounded-2xl border space-y-3 transition-colors ${
-            isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-[#16171b] border-white/10'
-          }`}
-        >
-          <span className="text-[10px] font-mono text-[#A38448] uppercase font-bold tracking-wider block">
-            4. PAYMENT SELECTION
-          </span>
-
-          {/* Payment Method Selector Pills */}
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { id: 'apple-pay', label: ' Apple Pay' },
-              { id: 'card', label: 'Credit Card' },
-              { id: 'google-pay', label: 'G Pay' },
-            ].map((p) => (
+          {/* QUANTITY STEPPER */}
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+            <span className="text-xs font-bold uppercase">Order Quantity:</span>
+            <div className="flex items-center gap-2 border rounded-xl px-2 py-1">
               <button
-                key={p.id}
-                onClick={() => setPaymentMethod(p.id as any)}
-                className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all ${
-                  paymentMethod === p.id
-                    ? 'bg-[#C6A66B] border-[#C6A66B] text-black shadow-sm font-bold'
-                    : isLight
-                    ? 'bg-gray-50 border-gray-200 text-gray-700'
-                    : 'bg-black/40 border-white/10 text-zinc-300'
-                }`}
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                className="p-1 text-gray-500 hover:text-black"
               >
-                {p.label}
+                <Minus className="w-3.5 h-3.5" />
               </button>
-            ))}
+              <span className="text-xs font-mono font-bold w-6 text-center">{quantity}</span>
+              <button
+                onClick={() => setQuantity((q) => q + 1)}
+                className="p-1 text-gray-500 hover:text-black"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
-          {/* Apple Pay Button Visual Option */}
-          {paymentMethod === 'apple-pay' && (
-            <div className={`p-3 rounded-xl border text-center space-y-1 ${isLight ? 'bg-gray-900 border-black text-white' : 'bg-black border-white/20 text-white'}`}>
-              <span className="text-sm font-bold font-mono">Pay with Face ID</span>
-              <p className="text-[10px] text-zinc-300">
-                Authorized with your Apple device biometric security.
-              </p>
-            </div>
-          )}
-
-          {/* Credit Card Input */}
-          {paymentMethod === 'card' && (
-            <div className="space-y-2 pt-1">
-              <div>
-                <label className={`text-[10px] font-mono uppercase block mb-1 ${isLight ? 'text-gray-600 font-semibold' : 'text-zinc-400'}`}>
-                  Card Number
-                </label>
-                <div className="relative">
-                  <CreditCard className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isLight ? 'text-gray-400' : 'text-zinc-400'}`} />
-                  <input
-                    type="text"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
-                    className={`w-full border rounded-xl py-2 pl-9 pr-3 text-xs font-mono focus:outline-none focus:border-[#C6A66B] transition-colors ${
-                      isLight
-                        ? 'bg-gray-50 border-gray-300 text-gray-900 focus:bg-white'
-                        : 'bg-black/60 border-white/15 text-white'
-                    }`}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className={`text-[10px] font-mono uppercase block mb-1 ${isLight ? 'text-gray-600 font-semibold' : 'text-zinc-400'}`}>
-                    Expiry (MM/YY)
-                  </label>
-                  <input
-                    type="text"
-                    value={cardExpiry}
-                    onChange={(e) => setCardExpiry(e.target.value)}
-                    className={`w-full border rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#C6A66B] transition-colors ${
-                      isLight
-                        ? 'bg-gray-50 border-gray-300 text-gray-900 focus:bg-white'
-                        : 'bg-black/60 border-white/15 text-white'
-                    }`}
-                  />
-                </div>
-                <div>
-                  <label className={`text-[10px] font-mono uppercase block mb-1 ${isLight ? 'text-gray-600 font-semibold' : 'text-zinc-400'}`}>
-                    CVC Code
-                  </label>
-                  <input
-                    type="text"
-                    value={cardCvc}
-                    onChange={(e) => setCardCvc(e.target.value)}
-                    className={`w-full border rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#C6A66B] transition-colors ${
-                      isLight
-                        ? 'bg-gray-50 border-gray-300 text-gray-900 focus:bg-white'
-                        : 'bg-black/60 border-white/15 text-white'
-                    }`}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {paymentMethod === 'google-pay' && (
-            <div className={`p-3 rounded-xl border text-center ${isLight ? 'bg-gray-900 text-white' : 'bg-black border-white/20'}`}>
-              <span className="text-xs font-bold font-mono">G Pay 1-Tap Ready</span>
-            </div>
-          )}
-        </section>
-
-        {/* SECTION 5: ORDER SUMMARY */}
-        <section
-          className={`p-4 rounded-2xl border space-y-2 text-xs transition-colors ${
-            isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-[#16171b] border-white/10'
-          }`}
-        >
-          <span className="text-[10px] font-mono text-[#A38448] uppercase font-bold tracking-wider block">
-            5. FINAL REVIEW
-          </span>
-
-          <div className="flex justify-between">
-            <span className={isLight ? 'text-gray-500' : 'text-zinc-400'}>Items ({cart.length})</span>
-            <span className={`font-mono font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>${cartSubtotal.toFixed(2)}</span>
-          </div>
-
-          <div className="flex justify-between">
-            <span className={isLight ? 'text-gray-500' : 'text-zinc-400'}>Shipping</span>
-            <span className={`font-mono ${isLight ? 'text-gray-900' : 'text-white'}`}>
-              {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
+          {/* TOTAL */}
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+            <span className="text-xs font-bold uppercase">Total Due:</span>
+            <span className="text-lg font-mono font-black text-[#A38448]">
+              ${totalAmount.toFixed(2)}
             </span>
           </div>
-
-          <div className={`pt-2 border-t flex justify-between items-baseline ${isLight ? 'border-gray-200' : 'border-white/10'}`}>
-            <span className={`text-sm font-bold uppercase ${isLight ? 'text-gray-900' : 'text-white'}`}>Total Due</span>
-            <span className="text-xl font-mono font-black text-[#A38448]">
-              ${total.toFixed(2)}
-            </span>
-          </div>
-        </section>
+        </div>
       </div>
 
-      {/* FIXED BOTTOM CTA BUTTON */}
+      {/* DOCKED ACTIONS: BUY NOW & PLACE ORDER */}
       <div
-        className={`fixed bottom-0 inset-x-0 z-40 backdrop-blur-xl border-t p-3 max-w-lg mx-auto transition-colors ${
-          isLight
-            ? 'bg-white/98 border-gray-200'
-            : 'bg-[#101010]/95 border-white/10'
+        className={`fixed bottom-[58px] inset-x-0 z-40 backdrop-blur-xl border-t p-3 max-w-lg mx-auto grid grid-cols-2 gap-2.5 shadow-2xl transition-colors ${
+          isLight ? 'bg-white/98 border-gray-200' : 'bg-[#101010]/98 border-white/10'
         }`}
       >
+        {/* ACTION 1: PLACE ORDER (PAY AT STALL) */}
         <button
-          onClick={handlePlaceOrder}
+          onClick={handlePlaceOrderAtStall}
           disabled={isSubmitting}
-          className="w-full py-4 px-6 rounded-2xl bg-[#C6A66B] hover:bg-[#D4B579] disabled:opacity-50 text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl active:scale-98"
+          className={`py-3 px-3 rounded-2xl border font-bold text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center ${
+            isLight
+              ? 'bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-900'
+              : 'bg-white/10 hover:bg-white/15 border-white/20 text-white'
+          }`}
         >
-          {isSubmitting ? (
-            <span>PROCESSING ENCRYPTED ORDER...</span>
-          ) : (
-            <>
-              <Lock className="w-4 h-4" />
-              <span>PLACE ORDER • ${total.toFixed(2)}</span>
-            </>
-          )}
+          <span>PLACE ORDER</span>
+          <span className="text-[9px] font-mono font-normal opacity-80">Pay at Stall</span>
+        </button>
+
+        {/* ACTION 2: BUY NOW (DEMO PAYMENT) */}
+        <button
+          onClick={handleProceedBuyNow}
+          disabled={isSubmitting}
+          className="py-3 px-3 rounded-2xl bg-[#C6A66B] hover:bg-[#D4B579] text-black font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg active:scale-98 flex flex-col items-center justify-center"
+        >
+          <span>BUY NOW</span>
+          <span className="text-[9px] font-mono font-bold opacity-90">Demo Payment</span>
         </button>
       </div>
 
-      {/* ORDER SUCCESS POPUP / SCREEN */}
-      {placedOrder && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+      {/* DEMO PAYMENT MODAL */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
           <div
-            className={`w-full max-w-sm rounded-3xl border-2 p-6 space-y-4 text-center shadow-2xl animate-in zoom-in-95 transition-colors ${
-              isLight
-                ? 'bg-white border-[#C6A66B] text-gray-900'
-                : 'bg-[#16171b] border-[#C6A66B]/50 text-white'
+            className={`w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-5 space-y-4 border shadow-2xl ${
+              isLight ? 'bg-white border-gray-200 text-gray-900' : 'bg-[#15161a] border-white/10 text-white'
             }`}
           >
-            <div className="w-16 h-16 rounded-full bg-[#C6A66B]/20 border border-[#C6A66B] flex items-center justify-center mx-auto text-[#A38448]">
-              <PackageCheck className="w-8 h-8" />
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+              <div>
+                <span className="text-[9px] font-mono text-[#A38448] font-bold uppercase">
+                  DEMO PAYMENT GATEWAY
+                </span>
+                <h3 className="text-xs font-bold uppercase tracking-wider">
+                  Select Demo Payment Method
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="text-gray-400 hover:text-black"
+              >
+                ✕
+              </button>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono text-[#A38448] uppercase font-bold tracking-widest">
-                ORDER CONFIRMED
-              </span>
-              <h2 className={`text-xl font-black uppercase ${isLight ? 'text-gray-900' : 'text-white'}`}>
-                THANK YOU, MARCUS!
-              </h2>
-              <p className={`text-xs ${isLight ? 'text-gray-600' : 'text-zinc-400'}`}>
-                Your high-performance insoles are now in queue for custom calibration.
-              </p>
+            {/* Clear Demo Label Notice */}
+            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 text-[10px] space-y-0.5">
+              <span className="font-bold">EXHIBITION SANDBOX MODE</span>
+              <p>Demo payment flow — no actual charges will be processed on cards or UPI.</p>
             </div>
 
-            <div
-              className={`p-3 rounded-2xl border text-xs font-mono space-y-1 text-left ${
-                isLight ? 'bg-gray-50 border-gray-200' : 'bg-black/60 border-white/10'
-              }`}
-            >
-              <div className="flex justify-between">
-                <span className={isLight ? 'text-gray-500' : 'text-zinc-500'}>CONFIRMATION #:</span>
-                <span className="text-[#A38448] font-bold">{placedOrder.id}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className={isLight ? 'text-gray-500' : 'text-zinc-500'}>ESTIMATED DELIVERY:</span>
-                <span className={isLight ? 'text-gray-900 font-semibold' : 'text-white'}>3 Business Days</span>
-              </div>
-              <div className="flex justify-between">
-                <span className={isLight ? 'text-gray-500' : 'text-zinc-500'}>TOTAL CHARGED:</span>
-                <span className={isLight ? 'text-gray-900 font-bold' : 'text-white'}>${placedOrder.total.toFixed(2)}</span>
-              </div>
+            <div className="space-y-2">
+              {[
+                { id: 'card', name: 'Contactless Card / Apple Pay (Demo)', icon: CreditCard },
+                { id: 'qr', name: 'Instant QR / UPI Scan (Demo)', icon: QrCode },
+              ].map((m) => {
+                const Icon = m.icon;
+                const isSelected = selectedPaymentMethod === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setSelectedPaymentMethod(m.id as any)}
+                    className={`w-full p-3 rounded-xl border text-left flex items-center justify-between text-xs font-bold transition-all ${
+                      isSelected
+                        ? 'bg-[#C6A66B] text-black border-[#C6A66B]'
+                        : isLight
+                        ? 'bg-gray-50 border-gray-200 text-gray-800'
+                        : 'bg-white/5 border-white/10 text-zinc-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Icon className="w-4 h-4" />
+                      <span>{m.name}</span>
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
+                  </button>
+                );
+              })}
             </div>
 
             <button
-              onClick={() => {
-                setPlacedOrder(null);
-                setCurrentScreen('order-tracking');
-              }}
-              className="w-full py-3.5 px-4 rounded-xl bg-[#C6A66B] hover:bg-[#D4B579] text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg"
+              onClick={handleConfirmDemoPayment}
+              disabled={isSubmitting}
+              className="w-full py-3.5 rounded-xl bg-[#C6A66B] hover:bg-[#D4B579] text-black font-extrabold text-xs uppercase tracking-wider shadow-lg"
             >
-              <span>TRACK YOUR ORDER</span>
-              <ArrowRight className="w-4 h-4" />
+              {isSubmitting ? 'AUTHORIZING DEMO...' : `CONFIRM DEMO PAYMENT ($${totalAmount.toFixed(2)})`}
             </button>
           </div>
         </div>

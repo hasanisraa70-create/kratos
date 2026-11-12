@@ -20,6 +20,9 @@ interface ToastState {
 interface AppContextType {
   currentScreen: ScreenId;
   setCurrentScreen: (screen: ScreenId) => void;
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+  updateProduct: (id: string, updates: Partial<Product>) => void;
   selectedProduct: Product;
   setSelectedProduct: (p: Product) => void;
   activeCategory: CategoryId;
@@ -53,7 +56,22 @@ interface AppContextType {
   activeOrder: Order | null;
   setActiveOrder: (order: Order | null) => void;
   placeOrder: (shippingAddress: Order['shippingAddress'], paymentMethod: string, discountAmount: number) => Order;
+  placeStallOrder: (params: {
+    customerName: string;
+    phone: string;
+    email?: string;
+    notes?: string;
+    paymentMethod: string;
+    paymentStatus: 'Paid (Demo)' | 'Pending at Stall';
+  }) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
+  updateOrderPaymentStatus: (orderId: string, status: 'Paid (Demo)' | 'Pending at Stall' | 'Paid') => void;
+
+  // Stall Mode
+  isStallMode: boolean;
+  setIsStallMode: (val: boolean) => void;
+  toggleStallMode: () => void;
+  resetStallSession: () => void;
 
   // Warranty
   warranties: WarrantyRegistration[];
@@ -84,14 +102,16 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [selectedProduct, setSelectedProduct] = useState<Product>(PRODUCTS[0]);
   const [activeCategory, setActiveCategory] = useState<CategoryId>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSport, setSelectedSport] = useState<string | null>('Running');
+  const [selectedSport, setSelectedSport] = useState<string | null>('Sprinting');
   const [wishlist, setWishlist] = useState<string[]>([PRODUCTS[0].id]);
   const [viewMode, setViewMode] = useState<'mobile-frame' | 'mobile-full' | 'admin-desktop'>('mobile-frame');
   const [showFlutterSpec, setShowFlutterSpec] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [isStallMode, setIsStallMode] = useState(true); // Default to Stall Mode for exhibition/kiosk
 
   const toggleTheme = () => {
     setTheme((prev) => {
@@ -99,6 +119,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       showToast(next === 'light' ? 'Light Mode active' : 'Dark Mode active');
       return next;
     });
+  };
+
+  const toggleStallMode = () => {
+    setIsStallMode((prev) => {
+      const next = !prev;
+      showToast(next ? 'Stall Kiosk Mode enabled' : 'Standard Mobile Mode active');
+      return next;
+    });
+  };
+
+  const updateProduct = (id: string, updates: Partial<Product>) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
+    );
+    if (selectedProduct.id === id) {
+      setSelectedProduct((prev) => ({ ...prev, ...updates }));
+    }
+    showToast('Product updated successfully');
   };
 
   // Initial cart with a pre-configured sample item
@@ -115,7 +153,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       quantity: 1,
       customizationDetails: {
         arch: 'Neutral Arch',
-        flex: 'Performance Flex',
+        flex: 'Semi-Rigid',
         engraving: 'KRT-PRO',
       },
     },
@@ -134,9 +172,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     width: 'Standard',
     color: COLORWAYS[0],
     archHeight: 'Neutral',
-    flexStiffness: 'Medium',
+    flexStiffness: 'Semi-Rigid',
     topCover: 'Standard Grip',
-    laserEngravingText: 'KRATOS',
+    cushioning: 'Dual-Density PU',
+    laserEngravingText: 'KRT-26',
     totalPrice: PRODUCTS[0].price + 15, // base + default engraving
   });
 
@@ -160,7 +199,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       id: `cart-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
     };
     setCart((prev) => [newItem, ...prev]);
-    showToast(`Added ${item.name} to bag`);
+    showToast(`Added ${item.name} to order summary`);
   };
 
   const updateCartQuantity = (id: string, delta: number) => {
@@ -179,7 +218,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const removeFromCart = (id: string) => {
     setCart((prev) => prev.filter((item) => item.id !== id));
-    showToast('Item removed from bag', 'info');
+    showToast('Item removed from order', 'info');
   };
 
   const clearCart = () => setCart([]);
@@ -191,7 +230,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setWishlist((prev) => {
       const exists = prev.includes(productId);
       const updated = exists ? prev.filter((id) => id !== productId) : [...prev, productId];
-      showToast(exists ? 'Removed from saved wishlist' : 'Saved to wishlist');
+      showToast(exists ? 'Removed from saved items' : 'Saved to favorites');
       return updated;
     });
   };
@@ -203,15 +242,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const next = { ...prev, ...updates };
       let extra = 0;
       if (next.laserEngravingText.trim().length > 0) extra += 15;
-      if (next.flexStiffness === 'Rigid Competition') extra += 10;
+      if (next.flexStiffness === 'Ultra-Stiff Track') extra += 10;
       if (next.topCover === 'Ultra-Plush Velvet') extra += 5;
+      if (next.cushioning === 'Nitrogen Ultra-Light') extra += 8;
       next.totalPrice = next.basePrice + extra;
       return next;
     });
   };
 
   const resetCustomBuild = (product?: Product) => {
-    const prod = product || selectedProduct || PRODUCTS[0];
+    const prod = product || selectedProduct || products[0];
     setCustomBuild({
       productId: prod.id,
       productName: prod.name,
@@ -220,11 +260,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       width: 'Standard',
       color: prod.colorways[0] || COLORWAYS[0],
       archHeight: 'Neutral',
-      flexStiffness: 'Medium',
+      flexStiffness: 'Semi-Rigid',
       topCover: 'Standard Grip',
-      laserEngravingText: 'KRT-24',
+      cushioning: 'Dual-Density PU',
+      laserEngravingText: 'KRATOS',
       totalPrice: prod.price + 15,
     });
+  };
+
+  // Reset entire stall session for the next booth visitor
+  const resetStallSession = () => {
+    clearCart();
+    resetCustomBuild(products[0]);
+    setCurrentScreen('home');
+    showToast('Session reset. Ready for next customer.', 'info');
   };
 
   const placeOrder = (
@@ -233,9 +282,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     discountAmount: number
   ): Order => {
     const subtotal = cartSubtotal;
-    const shipping = subtotal > 75 ? 0 : 9.99;
+    const shipping = 0; // Stall pickup free
     const total = Math.max(0, subtotal - discountAmount + shipping);
-    const orderNum = `KRT-${Math.floor(1000 + Math.random() * 9000)}`;
+    const orderNum = `KRT-STALL-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const newOrder: Order = {
       id: orderNum,
@@ -245,17 +294,88 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       discount: discountAmount,
       shipping,
       total,
-      status: 'Order Placed',
-      carrier: 'FedEx Carbon Express',
-      trackingNumber: `7829-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`,
-      estimatedDelivery: '3 Business Days',
+      status: 'Order Received',
+      paymentStatus: 'Paid (Demo)',
+      paymentMethod,
+      isStallOrder: true,
+      carrier: 'Kratos Stall Booth 4B',
+      trackingNumber: `STALL-${Math.floor(1000 + Math.random() * 9000)}`,
+      estimatedDelivery: 'Ready in 15 mins at Stall Counter',
       shippingAddress,
+      customerInfo: {
+        fullName: shippingAddress?.fullName || 'Booth Visitor',
+        phone: '+1 (503) 555-0192',
+        boothLocation: 'Exhibition Stall 4B',
+      },
     };
 
     setOrders((prev) => [newOrder, ...prev]);
     setActiveOrder(newOrder);
     clearCart();
     showToast(`Order ${orderNum} confirmed!`, 'success');
+    return newOrder;
+  };
+
+  // Physical stall fast-checkout placement
+  const placeStallOrder = ({
+    customerName,
+    phone,
+    email,
+    notes,
+    paymentMethod,
+    paymentStatus,
+  }: {
+    customerName: string;
+    phone: string;
+    email?: string;
+    notes?: string;
+    paymentMethod: string;
+    paymentStatus: 'Paid (Demo)' | 'Pending at Stall';
+  }): Order => {
+    const subtotal = cartSubtotal;
+    const total = subtotal;
+    const orderNum = `KRT-STALL-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const newOrder: Order = {
+      id: orderNum,
+      date: 'Just now',
+      items: [...cart],
+      subtotal,
+      discount: 0,
+      shipping: 0,
+      total,
+      status: 'Order Received',
+      paymentStatus,
+      paymentMethod,
+      isStallOrder: true,
+      carrier: 'Stall Counter Direct Pickup',
+      trackingNumber: `BOOTH-4B-${Math.floor(100 + Math.random() * 900)}`,
+      estimatedDelivery: 'Ready in 15 mins',
+      customerInfo: {
+        fullName: customerName,
+        phone,
+        email,
+        notes,
+        boothLocation: 'Stall Booth 4B',
+      },
+      shippingAddress: {
+        fullName: customerName,
+        street: 'Kratos Exhibition Stall 4B',
+        city: 'Portland',
+        state: 'OR',
+        zip: '97232',
+      },
+    };
+
+    setOrders((prev) => [newOrder, ...prev]);
+    setActiveOrder(newOrder);
+    clearCart();
+    showToast(
+      paymentStatus === 'Paid (Demo)'
+        ? `Payment verified! Order ${orderNum} generated.`
+        : `Order ${orderNum} submitted to booth staff!`,
+      'success'
+    );
     return newOrder;
   };
 
@@ -266,7 +386,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (activeOrder && activeOrder.id === orderId) {
       setActiveOrder((prev) => (prev ? { ...prev, status } : null));
     }
-    showToast(`Order ${orderId} updated to ${status}`);
+    showToast(`Order ${orderId} updated to: ${status}`);
+  };
+
+  const updateOrderPaymentStatus = (
+    orderId: string,
+    status: 'Paid (Demo)' | 'Pending at Stall' | 'Paid'
+  ) => {
+    setOrders((prev) =>
+      prev.map((ord) => (ord.id === orderId ? { ...ord, paymentStatus: status } : ord))
+    );
+    if (activeOrder && activeOrder.id === orderId) {
+      setActiveOrder((prev) => (prev ? { ...prev, paymentStatus: status } : null));
+    }
+    showToast(`Payment status for ${orderId} set to: ${status}`);
   };
 
   const registerWarranty = (
@@ -311,6 +444,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       value={{
         currentScreen,
         setCurrentScreen,
+        products,
+        setProducts,
+        updateProduct,
         selectedProduct,
         setSelectedProduct,
         activeCategory,
@@ -336,7 +472,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         activeOrder,
         setActiveOrder,
         placeOrder,
+        placeStallOrder,
         updateOrderStatus,
+        updateOrderPaymentStatus,
+        isStallMode,
+        setIsStallMode,
+        toggleStallMode,
+        resetStallSession,
         warranties,
         registerWarranty,
         theme,

@@ -7,20 +7,26 @@ import {
   Plus, 
   X, 
   Check, 
-  ArrowUpDown 
+  ArrowUpDown,
+  Eye,
+  Sliders,
+  Sparkles,
+  Info
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Header } from '../components/common/Header';
-import { PRODUCTS } from '../data/mockData';
 import { CategoryId, Product } from '../types';
 
 export const ShopScreen: React.FC = () => {
   const {
+    products,
     activeCategory,
     setActiveCategory,
     searchQuery,
     setSearchQuery,
     navigateToProduct,
+    startCustomizerForProduct,
+    open3DViewer,
     addToCart,
     toggleWishlist,
     isWishlisted,
@@ -33,24 +39,30 @@ export const ShopScreen: React.FC = () => {
   const [showSortModal, setShowSortModal] = useState(false);
 
   const categories: { id: CategoryId; label: string }[] = [
-    { id: 'all', label: 'All Products' },
-    { id: 'carbon-fiber', label: 'Carbon Fiber' },
-    { id: 'non-carbon', label: 'Non-Carbon' },
-    { id: 'high-arch', label: 'High Arch Support' },
+    { id: 'all', label: 'All Insoles' },
+    { id: 'sprinting', label: 'Sprinting' },
+    { id: 'basketball', label: 'Basketball' },
+    { id: 'marathon', label: 'Marathon' },
+    { id: 'recovery', label: 'Recovery' },
+    { id: 'carbon-fiber', label: '3K Carbon Plates' },
+    { id: 'high-arch', label: 'High Arch Relief' },
   ];
 
-  // Filtering
-  const filteredProducts = PRODUCTS.filter((product) => {
+  // Filtering & Sorting
+  const filteredProducts = products.filter((product) => {
     const matchesCategory =
       activeCategory === 'all' ||
       product.category === activeCategory ||
-      (activeCategory === 'non-carbon' && product.category === 'high-arch');
+      (product.sports && product.sports.some((s) => s.toLowerCase() === activeCategory.toLowerCase())) ||
+      (activeCategory === 'carbon-fiber' && product.specs.plateMaterial.toLowerCase().includes('carbon'));
 
+    const query = searchQuery.trim().toLowerCase();
     const matchesSearch =
-      searchQuery.trim() === '' ||
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.tag.toLowerCase().includes(searchQuery.toLowerCase());
+      query === '' ||
+      product.name.toLowerCase().includes(query) ||
+      product.description.toLowerCase().includes(query) ||
+      product.tag.toLowerCase().includes(query) ||
+      (product.sports && product.sports.some((s) => s.toLowerCase().includes(query)));
 
     return matchesCategory && matchesSearch;
   }).sort((a, b) => {
@@ -76,22 +88,37 @@ export const ShopScreen: React.FC = () => {
 
   return (
     <div
-      className={`flex-1 flex flex-col pb-8 transition-colors ${
+      className={`flex-1 flex flex-col pb-24 transition-colors ${
         isLight ? 'bg-[#F9FAFB] text-gray-900' : 'bg-[#101010] text-white'
       }`}
     >
       <Header />
 
       <div className="px-4 py-4 space-y-4">
-        {/* TOP: Shop Heading & Search Bar */}
+        {/* SHOP HEADER & STATS */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h1 className={`text-xl font-black uppercase tracking-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>
-              PERFORMANCE CATALOG
-            </h1>
-            <span className={`text-[11px] font-mono ${isLight ? 'text-gray-500' : 'text-zinc-400'}`}>
-              {filteredProducts.length} MODELS
-            </span>
+            <div>
+              <h1 className={`text-xl font-black uppercase tracking-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                INSOLE CATALOGUE
+              </h1>
+              <p className={`text-[11px] ${isLight ? 'text-gray-500' : 'text-zinc-400'}`}>
+                Showing {filteredProducts.length} available models
+              </p>
+            </div>
+
+            {/* Sort trigger button */}
+            <button
+              onClick={() => setShowSortModal(true)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-colors ${
+                isLight
+                  ? 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50 shadow-xs'
+                  : 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10'
+              }`}
+            >
+              <ArrowUpDown className="w-3.5 h-3.5 text-[#C6A66B]" />
+              <span className="uppercase">{sortBy.replace('-', ' ')}</span>
+            </button>
           </div>
 
           {/* Search Input Bar */}
@@ -101,40 +128,37 @@ export const ShopScreen: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search carbon fiber, arch support, sprint..."
-              className={`w-full border rounded-2xl py-2.5 pl-10 pr-9 text-xs focus:outline-none focus:border-[#C6A66B] transition-colors ${
+              placeholder="Search sprint, basketball, high arch, carbon..."
+              className={`w-full pl-10 pr-9 py-2.5 rounded-2xl text-xs transition-colors border focus:outline-none focus:border-[#C6A66B] ${
                 isLight
                   ? 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 shadow-xs'
-                  : 'bg-[#16171b] border-white/10 text-white placeholder-zinc-500'
+                  : 'bg-[#15161a] border-white/10 text-white placeholder-zinc-500'
               }`}
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full bg-zinc-300 text-zinc-700 hover:text-black dark:bg-zinc-700 dark:text-zinc-300 dark:hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-black"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
-        </div>
 
-        {/* Filter and Sort Controls */}
-        <div className="flex items-center justify-between gap-2">
           {/* Category Filter Pills (Horizontal Scroll) */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
             {categories.map((cat) => {
-              const isActive = activeCategory === cat.id;
+              const isSelected = activeCategory === cat.id;
               return (
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
-                    isActive
-                      ? 'bg-[#C6A66B] border-[#C6A66B] text-black font-bold shadow-md'
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                    isSelected
+                      ? 'bg-[#C6A66B] text-black shadow-md'
                       : isLight
-                      ? 'bg-white border-gray-200 text-gray-700 hover:text-black hover:border-gray-300 shadow-xs'
-                      : 'bg-[#16171b] border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
+                      ? 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
+                      : 'bg-white/5 border border-white/10 text-zinc-300 hover:bg-white/10'
                   }`}
                 >
                   {cat.label}
@@ -142,115 +166,142 @@ export const ShopScreen: React.FC = () => {
               );
             })}
           </div>
-
-          {/* Sort Button */}
-          <button
-            onClick={() => setShowSortModal(true)}
-            className={`shrink-0 p-2 rounded-xl border transition-colors ${
-              isLight
-                ? 'bg-white border-gray-200 text-gray-700 hover:text-black shadow-xs'
-                : 'bg-[#16171b] border-white/10 text-zinc-300 hover:text-white hover:border-white/20'
-            }`}
-            title="Sort Products"
-          >
-            <ArrowUpDown className="w-4 h-4" />
-          </button>
         </div>
 
-        {/* PRODUCT GRID: CLEAN TWO-COLUMN LAYOUT */}
+        {/* Prototype Sample Data Notice */}
+        <div
+          className={`p-2.5 rounded-xl border flex items-center gap-2 text-[10px] transition-colors ${
+            isLight
+              ? 'bg-amber-50/60 border-amber-200/80 text-amber-900'
+              : 'bg-amber-950/20 border-amber-500/20 text-amber-300'
+          }`}
+        >
+          <Info className="w-3.5 h-3.5 shrink-0 text-[#C6A66B]" />
+          <span>
+            <strong>Stall Prototype Display:</strong> Specifications and pricing reflect exhibition demonstration models.
+          </span>
+        </div>
+
+        {/* PRODUCT GRID */}
         {filteredProducts.length === 0 ? (
-          <div className="py-16 text-center space-y-3">
-            <p className={isLight ? 'text-gray-500 text-xs' : 'text-zinc-400 text-xs'}>No insoles match your query.</p>
+          <div className="py-12 text-center space-y-3">
+            <p className={`text-sm ${isLight ? 'text-gray-500' : 'text-zinc-400'}`}>
+              No insoles match your query &quot;{searchQuery}&quot;.
+            </p>
             <button
               onClick={() => {
-                setActiveCategory('all');
                 setSearchQuery('');
+                setActiveCategory('all');
               }}
-              className="px-4 py-2 rounded-xl bg-[#C6A66B]/20 text-xs text-[#A38448] font-mono font-bold uppercase"
+              className="px-4 py-2 rounded-xl bg-[#C6A66B] text-black text-xs font-bold uppercase"
             >
               Reset Filters
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {filteredProducts.map((product) => {
               const favorited = isWishlisted(product.id);
               return (
                 <div
                   key={product.id}
                   onClick={() => navigateToProduct(product)}
-                  className={`rounded-2xl border overflow-hidden flex flex-col justify-between cursor-pointer group transition-all ${
+                  className={`rounded-2xl border p-3 flex flex-col justify-between cursor-pointer group transition-all hover:shadow-lg ${
                     isLight
                       ? 'bg-white border-gray-200 hover:border-gray-300 shadow-xs'
-                      : 'bg-[#16171b] border-white/10 hover:border-white/25 shadow-lg'
+                      : 'bg-[#15161a] border-white/10 hover:border-white/20'
                   }`}
                 >
-                  {/* Top Image + Wishlist */}
-                  <div className="relative aspect-square w-full bg-black/5 overflow-hidden">
+                  {/* Top Image Container */}
+                  <div className="relative w-full h-40 rounded-xl overflow-hidden bg-gray-100 mb-2.5">
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="w-full h-full object-cover filter contrast-105 group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
 
-                    {/* Category / Badge tag */}
-                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-black/75 backdrop-blur-md border border-white/10 text-[8px] font-mono text-[#C6A66B] font-bold uppercase">
+                    {/* Tag badge */}
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[8px] font-mono font-bold uppercase tracking-wider bg-black/80 text-[#C6A66B] backdrop-blur-xs">
                       {product.tag}
-                    </div>
+                    </span>
 
-                    {/* Wishlist Heart */}
+                    {/* Availability Status */}
+                    <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[8px] font-mono font-bold bg-emerald-600/90 text-white backdrop-blur-xs">
+                      {product.availability || 'In Stock'}
+                    </span>
+
+                    {/* Wishlist toggle */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleWishlist(product.id);
                       }}
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 backdrop-blur-md text-white hover:text-red-400 transition-colors"
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/75 transition-colors"
+                      title="Save item"
                     >
                       <Heart
-                        className={`w-3.5 h-3.5 ${
-                          favorited ? 'fill-red-500 text-red-500' : ''
-                        }`}
+                        className={`w-3.5 h-3.5 ${favorited ? 'fill-[#C6A66B] text-[#C6A66B]' : ''}`}
                       />
                     </button>
                   </div>
 
-                  {/* Product Info */}
-                  <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
-                    <div>
-                      {/* Rating */}
-                      <div className="flex items-center text-[10px] text-amber-500 font-bold mb-1">
-                        <Star className="w-3 h-3 fill-amber-400 mr-0.5" />
-                        <span>{product.rating}</span>
-                        <span className={`ml-1 ${isLight ? 'text-gray-400' : 'text-zinc-500'}`}>
-                          ({product.reviewsCount})
-                        </span>
-                      </div>
-
-                      {/* Product Name */}
-                      <h3 className={`text-xs font-bold line-clamp-2 leading-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>
-                        {product.name}
-                      </h3>
+                  {/* Product Details */}
+                  <div className="space-y-1 mb-3">
+                    <div className="flex items-center gap-1 text-[10px] text-amber-500 font-bold">
+                      <Star className="w-3 h-3 fill-amber-500" />
+                      <span>{product.rating}</span>
+                      <span className={`text-[9px] ${isLight ? 'text-gray-400' : 'text-zinc-500'}`}>
+                        ({product.reviewsCount} reviews)
+                      </span>
                     </div>
 
-                    {/* Price and Add button */}
-                    <div className="flex items-center justify-between pt-1">
-                      <div>
-                        <span className={`text-xs font-mono font-black ${isLight ? 'text-gray-900' : 'text-white'}`}>
-                          ${product.price.toFixed(2)}
-                        </span>
-                        {product.originalPrice && (
-                          <span className={`text-[10px] font-mono line-through block ${isLight ? 'text-gray-400' : 'text-zinc-500'}`}>
-                            ${product.originalPrice.toFixed(2)}
-                          </span>
-                        )}
-                      </div>
+                    <h2 className={`text-xs font-bold uppercase tracking-tight line-clamp-1 ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                      {product.name}
+                    </h2>
+                    <p className={`text-[10px] line-clamp-2 leading-relaxed ${isLight ? 'text-gray-500' : 'text-zinc-400'}`}>
+                      {product.subtitle}
+                    </p>
+                  </div>
 
+                  {/* Price & Action Buttons */}
+                  <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-mono font-black text-[#A38448]">
+                        ${product.price.toFixed(2)}
+                      </span>
+                      {product.originalPrice && (
+                        <span className={`text-[9px] font-mono line-through ml-1.5 ${isLight ? 'text-gray-400' : 'text-zinc-500'}`}>
+                          ${product.originalPrice.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {/* 3D View Shortcut */}
                       <button
-                        onClick={(e) => handleQuickAdd(product, e)}
-                        className="p-1.5 rounded-lg bg-[#C6A66B] hover:bg-[#D4B579] text-black transition-transform active:scale-95 shadow"
-                        title="Add to bag"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          open3DViewer(product);
+                        }}
+                        className={`p-1.5 rounded-lg border text-[10px] font-mono transition-colors ${
+                          isLight
+                            ? 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-700'
+                            : 'bg-white/5 border-white/10 hover:bg-white/10 text-zinc-300'
+                        }`}
+                        title="360° 3D Insole View"
                       >
-                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <Eye className="w-3.5 h-3.5 text-[#C6A66B]" />
+                      </button>
+
+                      {/* Customize Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startCustomizerForProduct(product);
+                        }}
+                        className="px-2.5 py-1.5 rounded-lg bg-[#C6A66B] hover:bg-[#D4B579] text-black font-extrabold text-[10px] uppercase tracking-wider transition-all"
+                      >
+                        CUSTOMIZE
                       </button>
                     </div>
                   </div>
@@ -261,34 +312,29 @@ export const ShopScreen: React.FC = () => {
         )}
       </div>
 
-      {/* Sort Bottom Sheet Modal */}
+      {/* SORT MODAL */}
       {showSortModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center p-3">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
           <div
-            className={`w-full max-w-sm rounded-3xl border p-5 space-y-3 shadow-2xl animate-in slide-in-from-bottom transition-colors ${
-              isLight
-                ? 'bg-white border-gray-200 text-gray-900'
-                : 'bg-[#16171b] border-white/15 text-white'
+            className={`w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-5 space-y-4 border ${
+              isLight ? 'bg-white border-gray-200 text-gray-900' : 'bg-[#15161a] border-white/10 text-white'
             }`}
           >
-            <div className={`flex justify-between items-center pb-2 border-b ${isLight ? 'border-gray-200' : 'border-white/10'}`}>
-              <span className="text-xs font-mono font-bold text-[#A38448] uppercase">
-                SORT PRODUCTS
-              </span>
-              <button
-                onClick={() => setShowSortModal(false)}
-                className={isLight ? 'text-gray-500 hover:text-black' : 'text-zinc-400 hover:text-white'}
-              >
-                <X className="w-4 h-4" />
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider">
+                Sort Insoles By
+              </h3>
+              <button onClick={() => setShowSortModal(false)}>
+                <X className="w-4 h-4 text-gray-400" />
               </button>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {[
-                { id: 'featured', label: 'Featured / Best Performance' },
+                { id: 'featured', label: 'Featured / Recommended' },
                 { id: 'price-asc', label: 'Price: Low to High' },
                 { id: 'price-desc', label: 'Price: High to Low' },
-                { id: 'rating', label: 'Highest Rated' },
+                { id: 'rating', label: 'Customer Rating' },
               ].map((opt) => (
                 <button
                   key={opt.id}
@@ -296,12 +342,12 @@ export const ShopScreen: React.FC = () => {
                     setSortBy(opt.id as any);
                     setShowSortModal(false);
                   }}
-                  className={`w-full py-2.5 px-3 rounded-xl flex items-center justify-between text-xs transition-colors ${
+                  className={`w-full p-3 rounded-xl text-left text-xs font-bold flex items-center justify-between transition-colors ${
                     sortBy === opt.id
-                      ? 'bg-[#C6A66B]/20 text-[#A38448] font-bold'
+                      ? 'bg-[#C6A66B] text-black'
                       : isLight
-                      ? 'hover:bg-gray-100 text-gray-700'
-                      : 'hover:bg-white/5 text-zinc-300'
+                      ? 'bg-gray-50 text-gray-800 hover:bg-gray-100'
+                      : 'bg-white/5 text-zinc-300 hover:bg-white/10'
                   }`}
                 >
                   <span>{opt.label}</span>

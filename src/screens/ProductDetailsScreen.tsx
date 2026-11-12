@@ -15,7 +15,10 @@ import {
   Minus,
   CheckCircle2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Info,
+  Layers,
+  MapPin
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Insole3DViewer } from '../components/3d/Insole3DViewer';
@@ -43,6 +46,7 @@ export const ProductDetailsScreen: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'benefits' | 'specs' | 'reviews'>('benefits');
   const [showSizeGuide, setShowSizeGuide] = useState(false);
+  const [activeHotspot, setActiveHotspot] = useState<number | null>(null);
 
   const favorited = isWishlisted(product.id);
 
@@ -57,19 +61,31 @@ export const ProductDetailsScreen: React.FC = () => {
       colorHex: selectedColor.hex,
       quantity,
     });
+    showToast(`Added ${quantity}x ${product.name} to order bag`);
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: product.name,
-        text: 'Check out Kratos Performance Insoles with aerospace carbon fiber',
-        url: window.location.href,
-      }).catch(() => {});
-    } else {
-      showToast('Link copied to clipboard!');
-    }
+  const handleBuyNow = () => {
+    handleAddToCart();
+    setCurrentScreen('checkout');
   };
+
+  const hotspots = [
+    {
+      id: 1,
+      title: 'Forefoot Kinetic Spring Zone',
+      desc: 'Tapered 3K carbon deck provides instantaneous propulsion snap upon metatarsal push-off.',
+    },
+    {
+      id: 2,
+      title: 'Biomechanical Arch Bridge',
+      desc: 'Resists medial arch flattening during prolonged running, maintaining biomechanical kinetic chain alignment.',
+    },
+    {
+      id: 3,
+      title: 'Deep Anatomical Heel Cradle',
+      desc: 'Centers the calcaneus fat pad and dampens heavy deceleration forces with Poron cellular foam.',
+    },
+  ];
 
   return (
     <div
@@ -95,19 +111,10 @@ export const ProductDetailsScreen: React.FC = () => {
         </button>
 
         <span className={`text-[11px] font-mono tracking-widest uppercase ${isLight ? 'text-gray-500 font-bold' : 'text-zinc-400'}`}>
-          PRODUCT EXPERIENCE
+          PRODUCT DETAILS & 3D
         </span>
 
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={handleShare}
-            className={`p-2 rounded-full transition-colors ${
-              isLight ? 'text-gray-700 hover:text-black hover:bg-gray-100' : 'text-white/80 hover:text-white hover:bg-white/10'
-            }`}
-            title="Share"
-          >
-            <Share2 className="w-5 h-5" />
-          </button>
           <button
             onClick={() => toggleWishlist(product.id)}
             className={`p-2 rounded-full transition-colors ${
@@ -124,7 +131,7 @@ export const ProductDetailsScreen: React.FC = () => {
         </div>
       </div>
 
-      <div className="px-4 py-3 space-y-5">
+      <div className="px-4 py-3 space-y-4">
         {/* MAIN PRODUCT 3D VIEWER CONTAINER */}
         <div className="relative">
           <Insole3DViewer
@@ -133,19 +140,76 @@ export const ProductDetailsScreen: React.FC = () => {
             onOpenFullscreen={() => open3DViewer(product)}
           />
 
-          {/* Quick Button below viewer */}
-          <div className="mt-2">
+          {/* Construction Hotspots Quick Controls */}
+          <div className="mt-2 flex items-center justify-between gap-1.5">
             <button
               onClick={() => open3DViewer(product)}
-              className={`w-full py-2.5 px-3 rounded-xl border font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+              className={`flex-1 py-2 px-3 rounded-xl border font-mono text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                 isLight
                   ? 'bg-white hover:bg-gray-50 border-gray-200 text-gray-800 shadow-xs'
                   : 'bg-white/10 hover:bg-white/15 border-white/15 text-white'
               }`}
             >
-              <Eye className="w-4 h-4 text-[#C6A66B]" />
-              <span>OPEN FULL-SCREEN 360° 3D VIEWER</span>
+              <Eye className="w-3.5 h-3.5 text-[#C6A66B]" />
+              <span>360° FULLSCREEN</span>
             </button>
+
+            <button
+              onClick={() => setActiveHotspot(activeHotspot ? null : 1)}
+              className={`py-2 px-3 rounded-xl border font-mono text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                activeHotspot !== null
+                  ? 'bg-[#C6A66B] text-black border-[#C6A66B]'
+                  : isLight
+                  ? 'bg-white hover:bg-gray-50 border-gray-200 text-gray-800 shadow-xs'
+                  : 'bg-white/10 hover:bg-white/15 border-white/15 text-white'
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>HOTSPOTS</span>
+            </button>
+          </div>
+
+          {/* Hotspot details card */}
+          {activeHotspot !== null && (
+            <div
+              className={`mt-2 p-3 rounded-xl border text-xs space-y-2 animate-in fade-in transition-colors ${
+                isLight ? 'bg-white border-[#C6A66B]/50 shadow-md' : 'bg-[#15161a] border-[#C6A66B]/40'
+              }`}
+            >
+              <div className="flex gap-2">
+                {hotspots.map((h) => (
+                  <button
+                    key={h.id}
+                    onClick={() => setActiveHotspot(h.id)}
+                    className={`flex-1 py-1 rounded-lg text-[10px] font-mono font-bold uppercase transition-all ${
+                      activeHotspot === h.id
+                        ? 'bg-[#C6A66B] text-black'
+                        : isLight ? 'bg-gray-100 text-gray-700' : 'bg-white/5 text-zinc-400'
+                    }`}
+                  >
+                    Zone {h.id}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <h4 className="font-bold text-xs text-[#A38448] uppercase">
+                  {hotspots[activeHotspot - 1].title}
+                </h4>
+                <p className={`text-[11px] leading-relaxed mt-0.5 ${isLight ? 'text-gray-600' : 'text-zinc-300'}`}>
+                  {hotspots[activeHotspot - 1].desc}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Prototype Notice */}
+          <div
+            className={`mt-2 p-2 rounded-xl border flex items-center gap-1.5 text-[9px] font-mono ${
+              isLight ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-amber-950/20 border-amber-500/20 text-amber-300'
+            }`}
+          >
+            <Info className="w-3.5 h-3.5 text-[#C6A66B] shrink-0" />
+            <span>Interactive 3D Prototype Model — Physical production matches athlete foot scan profile.</span>
           </div>
         </div>
 
@@ -179,7 +243,7 @@ export const ProductDetailsScreen: React.FC = () => {
               </span>
             )}
             <span className="text-[10px] font-mono text-emerald-600 font-bold ml-auto">
-              IN STOCK • SHIPS TODAY
+              {product.availability || 'IN STOCK'} • STALL READY
             </span>
           </div>
 
@@ -188,11 +252,11 @@ export const ProductDetailsScreen: React.FC = () => {
           </p>
         </div>
 
-        {/* COLORWAYS SELECTOR */}
+        {/* COLORWAYS SELECTOR (UPDATES 3D LIVE) */}
         <div className={`space-y-2 pt-2 border-t ${isLight ? 'border-gray-200' : 'border-white/10'}`}>
           <div className="flex items-center justify-between text-xs">
             <span className={`font-bold uppercase tracking-wider ${isLight ? 'text-gray-700' : 'text-zinc-300'}`}>
-              Colorway:
+              Colorway (Live 3D Update):
             </span>
             <span className="font-mono text-[#A38448] font-bold">{selectedColor.name}</span>
           </div>
@@ -349,7 +413,9 @@ export const ProductDetailsScreen: React.FC = () => {
                   <span className={`uppercase font-mono ${isLight ? 'text-gray-500' : 'text-zinc-400'}`}>
                     {key.replace(/([A-Z])/g, ' $1')}
                   </span>
-                  <span className={`font-semibold ${isLight ? 'text-gray-900' : 'text-white'}`}>{val}</span>
+                  <span className={`font-mono font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                    {val}
+                  </span>
                 </div>
               ))}
             </div>
@@ -357,34 +423,22 @@ export const ProductDetailsScreen: React.FC = () => {
 
           {/* TAB 3: REVIEWS */}
           {activeTab === 'reviews' && (
-            <div className="space-y-2.5 pt-1">
+            <div className="space-y-2 pt-1">
               {MOCK_REVIEWS.map((rev) => (
                 <div
                   key={rev.id}
-                  className={`p-3 rounded-xl border space-y-1.5 text-xs transition-colors ${
-                    isLight ? 'bg-white border-gray-200 shadow-xs' : 'bg-[#16171a] border-white/5'
+                  className={`p-3 rounded-xl border space-y-1 transition-colors ${
+                    isLight ? 'bg-white border-gray-200' : 'bg-[#16171a] border-white/5'
                   }`}
                 >
-                  <div className="flex justify-between items-center">
-                    <span className={`font-bold ${isLight ? 'text-gray-900' : 'text-white'}`}>{rev.author}</span>
-                    <span className={`text-[10px] font-mono ${isLight ? 'text-gray-400' : 'text-zinc-500'}`}>
-                      {rev.date}
-                    </span>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#A38448]">{rev.author}</span>
+                    <span className="text-amber-500 font-mono">★★★★★</span>
                   </div>
-                  <div className="flex items-center text-amber-500">
-                    {Array.from({ length: rev.rating }).map((_, r) => (
-                      <Star key={r} className="w-3 h-3 fill-amber-400" />
-                    ))}
-                    {rev.verified && (
-                      <span className="text-[9px] text-emerald-600 ml-2 font-mono flex items-center gap-0.5 font-bold">
-                        <CheckCircle2 className="w-3 h-3" /> VERIFIED ATHLETE
-                      </span>
-                    )}
-                  </div>
-                  <p className={`font-semibold text-[11px] ${isLight ? 'text-gray-900' : 'text-white/90'}`}>
-                    &ldquo;{rev.title}&rdquo;
+                  <p className={`text-xs font-semibold ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                    {rev.title}
                   </p>
-                  <p className={`text-[11px] leading-relaxed ${isLight ? 'text-gray-600' : 'text-zinc-400'}`}>
+                  <p className={`text-[11px] ${isLight ? 'text-gray-600' : 'text-zinc-400'}`}>
                     {rev.comment}
                   </p>
                 </div>
@@ -392,38 +446,9 @@ export const ProductDetailsScreen: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* 6-MONTH WARRANTY BANNER */}
-        <div
-          className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-colors ${
-            isLight
-              ? 'bg-[#FFFDF7] border-[#C6A66B]/40 shadow-xs'
-              : 'bg-gradient-to-r from-[#18191d] to-[#121316] border-[#C6A66B]/25'
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-[#C6A66B]/20 text-[#A38448]">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className={`text-xs font-bold uppercase ${isLight ? 'text-gray-900' : 'text-white'}`}>
-                6-Month Performance Warranty
-              </h4>
-              <p className={`text-[10px] ${isLight ? 'text-gray-600' : 'text-zinc-400'}`}>
-                100% guarantee against plate fracture or delamination.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setCurrentScreen('warranty')}
-            className="text-[10px] font-mono text-[#A38448] uppercase font-bold shrink-0 hover:underline"
-          >
-            Register
-          </button>
-        </div>
       </div>
 
-      {/* STICKY BOTTOM ACTION CTA DUAL BUTTONS (DOCKED ABOVE BOTTOM NAV BAR) */}
+      {/* DOCKED ACTIONS: CUSTOMIZE & BUY NOW */}
       <div
         className={`fixed bottom-[58px] inset-x-0 z-40 backdrop-blur-xl border-t p-3 max-w-lg mx-auto flex gap-2 shadow-2xl transition-colors ${
           isLight
@@ -444,10 +469,10 @@ export const ProductDetailsScreen: React.FC = () => {
         </button>
 
         <button
-          onClick={handleAddToCart}
+          onClick={handleBuyNow}
           className="flex-1 py-3 px-3 rounded-2xl bg-[#C6A66B] hover:bg-[#D4B579] text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-lg active:scale-98"
         >
-          <span>ADD TO CART</span>
+          <span>ORDER NOW</span>
           <span className="font-mono text-[11px] font-normal">
             • ${(product.price * quantity).toFixed(2)}
           </span>
@@ -476,26 +501,21 @@ export const ProductDetailsScreen: React.FC = () => {
               </button>
             </div>
 
-            <p className={`text-xs ${isLight ? 'text-gray-600' : 'text-zinc-400'}`}>
-              Kratos insoles are designed for direct drop-in replacement. Remove existing shoe factory sockliner before inserting.
-            </p>
-
             <table className="w-full text-xs font-mono">
               <thead>
                 <tr className={`border-b text-left ${isLight ? 'border-gray-200 text-gray-500' : 'border-white/10 text-zinc-400'}`}>
                   <th className="pb-1">US MEN</th>
                   <th className="pb-1">US WOMEN</th>
                   <th className="pb-1">EU</th>
-                  <th className="pb-1">LENGTH</th>
                 </tr>
               </thead>
               <tbody className={`divide-y ${isLight ? 'divide-gray-100 text-gray-800' : 'divide-white/5 text-zinc-300'}`}>
-                <tr><td className="py-1">7.0</td><td>8.5</td><td>40</td><td>25.5 cm</td></tr>
-                <tr><td className="py-1">8.0</td><td>9.5</td><td>41</td><td>26.5 cm</td></tr>
-                <tr><td className="py-1">9.0</td><td>10.5</td><td>42.5</td><td>27.5 cm</td></tr>
-                <tr><td className="py-1">10.0</td><td>11.5</td><td>44</td><td>28.5 cm</td></tr>
-                <tr><td className="py-1">11.0</td><td>12.5</td><td>45</td><td>29.5 cm</td></tr>
-                <tr><td className="py-1">12.0</td><td>13.5</td><td>46.5</td><td>30.5 cm</td></tr>
+                <tr><td className="py-1">7.0</td><td>8.5</td><td>40</td></tr>
+                <tr><td className="py-1">8.0</td><td>9.5</td><td>41</td></tr>
+                <tr><td className="py-1">9.0</td><td>10.5</td><td>42.5</td></tr>
+                <tr><td className="py-1">10.0</td><td>11.5</td><td>44</td></tr>
+                <tr><td className="py-1">11.0</td><td>12.5</td><td>45</td></tr>
+                <tr><td className="py-1">12.0</td><td>13.5</td><td>46.5</td></tr>
               </tbody>
             </table>
 

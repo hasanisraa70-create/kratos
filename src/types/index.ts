@@ -13,7 +13,7 @@ export type ScreenId =
   | 'profile'
   | 'admin';
 
-export type CategoryId = 'all' | 'carbon-fiber' | 'non-carbon' | 'high-arch';
+export type CategoryId = 'all' | 'carbon-fiber' | 'non-carbon' | 'high-arch' | 'sprinting' | 'basketball' | 'marathon' | 'recovery';
 
 export interface ProductColor {
   id: string;
@@ -21,6 +21,15 @@ export interface ProductColor {
   hex: string;
   accentHex: string;
   carbonTintHex: string;
+}
+
+export interface ProductCustomizationConfig {
+  allowArchProfile: boolean;
+  allowFootWidth: boolean;
+  allowStiffness: boolean;
+  allowTopCover: boolean;
+  allowCushioning: boolean;
+  allowLaserEngraving: boolean;
 }
 
 export interface Product {
@@ -39,6 +48,8 @@ export interface Product {
   image: string;
   colorways: ProductColor[];
   sizes: string[];
+  availability?: 'In Stock' | 'Custom Made' | 'Limited Stock';
+  customizationConfig?: ProductCustomizationConfig;
   specs: {
     weight: string;
     thickness: string;
@@ -63,8 +74,9 @@ export interface CustomInsoleBuild {
   width: 'Standard' | 'Wide';
   color: ProductColor;
   archHeight: 'Low' | 'Neutral' | 'High';
-  flexStiffness: 'Medium' | 'Stiff' | 'Rigid Competition';
+  flexStiffness: 'Flexible' | 'Semi-Rigid' | 'Ultra-Stiff Track';
   topCover: 'Standard Grip' | 'Perforated Aeration' | 'Ultra-Plush Velvet';
+  cushioning?: 'Dual-Density PU' | 'Poron Gel Pods' | 'Nitrogen Ultra-Light';
   laserEngravingText: string;
   totalPrice: number;
 }
@@ -80,16 +92,37 @@ export interface CartItem {
   colorHex: string;
   quantity: number;
   customizationDetails?: {
-    arch: string;
-    flex: string;
+    arch?: string;
+    flex?: string;
+    width?: string;
+    cushioning?: string;
+    topCover?: string;
     engraving?: string;
   };
 }
 
-export type OrderStatus = 'Order Placed' | 'Processing' | 'Shipped' | 'Out for Delivery' | 'Delivered';
+export type OrderStatus = 
+  | 'Order Received'
+  | 'Order Confirmed'
+  | 'In Production'
+  | 'Ready / Dispatched'
+  | 'Completed'
+  | 'Order Placed'
+  | 'Processing'
+  | 'Shipped'
+  | 'Out for Delivery'
+  | 'Delivered';
+
+export interface CustomerInfo {
+  fullName: string;
+  phone: string;
+  email?: string;
+  notes?: string;
+  boothLocation?: string;
+}
 
 export interface Order {
-  id: string;
+  id: string; // e.g. KRT-STALL-8942
   date: string;
   items: CartItem[];
   subtotal: number;
@@ -97,10 +130,14 @@ export interface Order {
   shipping: number;
   total: number;
   status: OrderStatus;
-  carrier: string;
-  trackingNumber: string;
-  estimatedDelivery: string;
-  shippingAddress: {
+  paymentStatus: 'Paid (Demo)' | 'Pending at Stall' | 'Paid';
+  paymentMethod?: string;
+  isStallOrder?: boolean;
+  carrier?: string;
+  trackingNumber?: string;
+  estimatedDelivery?: string;
+  customerInfo?: CustomerInfo;
+  shippingAddress?: {
     fullName: string;
     street: string;
     city: string;

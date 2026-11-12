@@ -15,6 +15,7 @@ import { CartScreen } from './screens/CartScreen';
 import { CheckoutScreen } from './screens/CheckoutScreen';
 import { OrderTrackingScreen } from './screens/OrderTrackingScreen';
 import { WarrantyScreen } from './screens/WarrantyScreen';
+import { AdminDashboard } from './screens/admin/AdminDashboard';
 
 const MainContent: React.FC = () => {
   const { currentScreen, toast } = useApp();
@@ -44,6 +45,8 @@ const MainContent: React.FC = () => {
         return <OrderTrackingScreen />;
       case 'warranty':
         return <WarrantyScreen />;
+      case 'admin':
+        return <AdminDashboard />;
       case 'profile':
       default:
         return <HomeScreen />;

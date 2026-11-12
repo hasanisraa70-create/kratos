@@ -56,12 +56,15 @@ export const Dedicated3DViewerScreen: React.FC = () => {
       </div>
 
       {/* Main Full-Screen 3D Insole Canvas */}
-      <div className="relative flex-1 flex items-center justify-center p-2">
+      <div className="relative flex-1 flex flex-col items-center justify-center p-2">
         <Insole3DViewer
           color={selectedColor}
-          height="480px"
+          height="450px"
           showControls={true}
         />
+        <p className="text-[9px] font-mono text-zinc-400 mt-1 text-center">
+          Interactive 3D Prototype Model • Drag to rotate 360° • Pinch / scroll to zoom
+        </p>
       </div>
 
       {/* Bottom Swatches & Action Bar */}

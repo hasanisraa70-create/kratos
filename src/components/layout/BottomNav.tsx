@@ -8,8 +8,8 @@ export const BottomNav: React.FC = () => {
 
   const isLight = theme === 'light';
 
-  // If on checkout, splash, or onboarding, bottom nav is hidden
-  if (['splash', 'onboarding', 'viewer-3d', 'checkout'].includes(currentScreen)) {
+  // If on checkout, splash, onboarding, admin, or 3d viewer, bottom nav is hidden
+  if (['splash', 'onboarding', 'viewer-3d', 'checkout', 'admin'].includes(currentScreen)) {
     return null;
   }
 
