@@ -108,29 +108,11 @@ export const OrderTrackingScreen: React.FC = () => {
         </button>
 
         <span className={`text-xs font-mono font-bold uppercase tracking-wider ${isLight ? 'text-gray-900' : 'text-white'}`}>
-          STALL ORDERS & STATUS
-        </span>
-
-        <span className="text-[10px] font-mono text-[#A38448] font-bold">
-          BOOTH 4B
+          ORDERS & STATUS
         </span>
       </div>
 
       <div className="px-4 py-4 space-y-4 flex-1">
-        {/* Prototype Notice */}
-        <div
-          className={`p-2.5 rounded-xl border flex items-center gap-2 text-[10px] transition-colors ${
-            isLight
-              ? 'bg-amber-50/70 border-amber-200 text-amber-900'
-              : 'bg-amber-950/20 border-amber-500/20 text-amber-300'
-          }`}
-        >
-          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-[#C6A66B]" />
-          <span>
-            <strong>Prototype Order Tracker:</strong> Sample exhibition orders for booth showcase. Status updates can be toggled in the Staff Portal.
-          </span>
-        </div>
-
         {/* ORDER SWITCHER PILLS (If multiple orders exist) */}
         {orders.length > 1 && (
           <div className="space-y-1.5">

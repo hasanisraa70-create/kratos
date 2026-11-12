@@ -261,11 +261,7 @@ export const CheckoutScreen: React.FC = () => {
         </button>
 
         <span className={`text-xs font-mono font-bold uppercase tracking-wider ${isLight ? 'text-gray-900' : 'text-white'}`}>
-          EXHIBITION STALL CHECKOUT
-        </span>
-
-        <span className="text-[10px] font-mono text-[#A38448] font-bold">
-          BOOTH 4B
+          EXPRESS CHECKOUT
         </span>
       </div>
 

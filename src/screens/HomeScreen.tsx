@@ -69,38 +69,6 @@ export const HomeScreen: React.FC = () => {
       <Header />
 
       <div className="px-4 py-4 space-y-6">
-        {/* STALL BANNER (When Stall Mode is Active) */}
-        {isStallMode && (
-          <div
-            className={`p-3 rounded-2xl border flex items-center justify-between text-xs transition-colors ${
-              isLight
-                ? 'bg-amber-50/80 border-amber-200 text-amber-950'
-                : 'bg-amber-950/20 border-amber-500/20 text-amber-200'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#C6A66B] animate-ping" />
-              <div>
-                <p className="font-bold text-[11px] uppercase tracking-wider font-mono">
-                  KRATOS STALL 4B // LIVE SHOWROOM
-                </p>
-                <p className="text-[10px] opacity-80">
-                  Touch to rotate in 3D, customize specs, and order directly at counter.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                setActiveCategory('all');
-                setCurrentScreen('shop');
-              }}
-              className="px-2.5 py-1 rounded-lg bg-[#C6A66B] text-black font-extrabold text-[10px] uppercase tracking-wider shrink-0"
-            >
-              BROWSE
-            </button>
-          </div>
-        )}
-
         {/* HERO BANNER — AEROSPACE INSOLE PRODUCT SHOWCASE */}
         <section className="relative rounded-3xl overflow-hidden border border-white/10 bg-gradient-to-b from-[#18191e] to-[#0c0d0f] p-5 shadow-2xl text-white">
           {/* Subtle Carbon Weave Pattern */}
@@ -109,18 +77,8 @@ export const HomeScreen: React.FC = () => {
           {/* Golden radial ambient highlight */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#C6A66B]/15 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Top Aerospace Tag */}
-          <div className="relative z-10 flex items-center justify-between mb-3">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#C6A66B]/20 border border-[#C6A66B]/40 text-[#C6A66B] text-[9px] font-mono font-bold tracking-widest uppercase">
-              EXHIBITION EDITION // 2026
-            </span>
-            <span className="text-[10px] font-mono text-zinc-400">
-              100% 3K PREPREG CARBON
-            </span>
-          </div>
-
           {/* Hero Typography */}
-          <div className="relative z-10 space-y-1.5 mb-4">
+          <div className="relative z-10 space-y-1.5 mb-4 pt-1">
             <h1 className="text-2xl font-black uppercase tracking-tight text-white leading-tight">
               AEROSPACE CARBON INSOLES. <br />
               <span className="gold-gradient-text">ENGINEERED FOR SPEED.</span>
@@ -494,7 +452,7 @@ export const HomeScreen: React.FC = () => {
           </div>
         </section>
 
-        {/* BOTTOM STALL ASSISTANCE & WARRANTY NOTICE */}
+        {/* BOTTOM ATHLETE ASSISTANCE & WARRANTY NOTICE */}
         <section
           className={`p-4 rounded-2xl border text-center space-y-2 transition-colors ${
             isLight
@@ -503,10 +461,10 @@ export const HomeScreen: React.FC = () => {
           }`}
         >
           <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#A38448]">
-            KRATOS PERFORMANCE SYSTEMS // STALL SUPPORT
+            KRATOS PERFORMANCE SYSTEMS // ATHLETE SUPPORT
           </p>
           <p className="text-xs">
-            Need custom fitting advice? Talk to our booth biomechanical specialist.
+            Need custom fitting advice or biomechanical recommendations?
           </p>
           <div className="flex items-center justify-center gap-3 pt-1">
             <button

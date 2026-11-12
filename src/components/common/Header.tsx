@@ -5,10 +5,7 @@ import {
   ArrowLeft, 
   Heart, 
   Sun, 
-  Moon, 
-  RotateCcw, 
-  ShieldCheck, 
-  TabletSmartphone 
+  Moon
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { BrandLogo } from './BrandLogo';
@@ -22,9 +19,6 @@ export const Header: React.FC = () => {
     setActiveCategory,
     theme,
     toggleTheme,
-    isStallMode,
-    toggleStallMode,
-    resetStallSession,
   } = useApp();
 
   const isLight = theme === 'light';
@@ -89,51 +83,10 @@ export const Header: React.FC = () => {
             showSubtitle={!isSubScreen}
           />
         </button>
-
-        {/* Stall Mode Badge */}
-        {isStallMode && (
-          <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#C6A66B]/15 border border-[#C6A66B]/30 text-[#A38448] text-[9px] font-mono font-bold uppercase tracking-wider">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#C6A66B] animate-pulse" />
-            STALL 4B
-          </span>
-        )}
       </div>
 
       {/* Right Actions */}
-      <div className="flex items-center gap-1">
-        {/* Stall Mode Quick Reset (clears session for next customer) */}
-        {isStallMode && (
-          <button
-            onClick={resetStallSession}
-            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-mono font-bold transition-all active:scale-95 border ${
-              isLight
-                ? 'bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-900'
-                : 'bg-amber-950/40 hover:bg-amber-900/50 border-amber-500/30 text-amber-300'
-            }`}
-            title="Reset Customer Session for next visitor"
-            aria-label="Reset Session"
-          >
-            <RotateCcw className="w-3 h-3 text-[#C6A66B]" />
-            <span className="hidden xs:inline">NEW GUEST</span>
-          </button>
-        )}
-
-        {/* Staff Admin Portal shortcut */}
-        <button
-          onClick={() => setCurrentScreen(currentScreen === 'admin' ? 'home' : 'admin')}
-          className={`p-1.5 rounded-full transition-colors ${
-            currentScreen === 'admin'
-              ? 'bg-[#C6A66B] text-black'
-              : isLight
-              ? 'text-gray-500 hover:text-black hover:bg-gray-100'
-              : 'text-zinc-400 hover:text-white hover:bg-white/10'
-          }`}
-          title="Staff Portal & Order Management"
-          aria-label="Staff Portal"
-        >
-          <ShieldCheck className="w-4 h-4" />
-        </button>
-
+      <div className="flex items-center gap-1.5">
         {/* Light / Dark Mode Toggle */}
         <button
           onClick={toggleTheme}

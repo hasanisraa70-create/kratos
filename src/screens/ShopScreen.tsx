@@ -168,20 +168,6 @@ export const ShopScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Prototype Sample Data Notice */}
-        <div
-          className={`p-2.5 rounded-xl border flex items-center gap-2 text-[10px] transition-colors ${
-            isLight
-              ? 'bg-amber-50/60 border-amber-200/80 text-amber-900'
-              : 'bg-amber-950/20 border-amber-500/20 text-amber-300'
-          }`}
-        >
-          <Info className="w-3.5 h-3.5 shrink-0 text-[#C6A66B]" />
-          <span>
-            <strong>Stall Prototype Display:</strong> Specifications and pricing reflect exhibition demonstration models.
-          </span>
-        </div>
-
         {/* PRODUCT GRID */}
         {filteredProducts.length === 0 ? (
           <div className="py-12 text-center space-y-3">

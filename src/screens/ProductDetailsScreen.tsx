@@ -201,16 +201,6 @@ export const ProductDetailsScreen: React.FC = () => {
               </div>
             </div>
           )}
-
-          {/* Prototype Notice */}
-          <div
-            className={`mt-2 p-2 rounded-xl border flex items-center gap-1.5 text-[9px] font-mono ${
-              isLight ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-amber-950/20 border-amber-500/20 text-amber-300'
-            }`}
-          >
-            <Info className="w-3.5 h-3.5 text-[#C6A66B] shrink-0" />
-            <span>Interactive 3D Prototype Model — Physical production matches athlete foot scan profile.</span>
-          </div>
         </div>
 
         {/* PRODUCT HEADER & RATING */}
