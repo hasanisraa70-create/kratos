@@ -52,7 +52,7 @@ export const PRODUCTS: Product[] = [
     tag: 'FLAGSHIP 3K CARBON',
     description:
       'Engineered for competitive athletes demanding explosive energy return and torsional rigidity. Features a genuine 3K carbon fiber shank integrated with dual-density high-rebound cushioning to convert impact into forward momentum.',
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80',
+    image: '/kratos-insole-red-top.jpg',
     colorways: COLORWAYS,
     sizes: [
       'US M 7 / W 8.5',
@@ -116,7 +116,7 @@ export const PRODUCTS: Product[] = [
     tag: 'FEATHERWEIGHT 28G',
     description:
       'Zero compromise on weight and stiffness. Stripped down to pure velocity with a razor-thin Toray T800 carbon deck tuned for sprint spikes, race-day super shoes, and high-cadence strides.',
-    image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=800&q=80',
+    image: '/kratos-insole-carbon-bottom.jpg',
     colorways: [COLORWAYS[0], COLORWAYS[2], COLORWAYS[1]],
     sizes: [
       'US M 7 / W 8.5',
@@ -174,7 +174,7 @@ export const PRODUCTS: Product[] = [
     tag: 'LATERAL LOCKDOWN',
     description:
       'Engineered specifically for basketball, tennis, and volleyball players. Extended carbon outrigger wings prevent foot rollover and ankle torque during rapid deceleration and explosive lateral cuts.',
-    image: 'https://images.unsplash.com/photo-1579338559194-a162d19bf842?auto=format&fit=crop&w=800&q=80',
+    image: '/kratos-insole-red-top.jpg',
     colorways: [COLORWAYS[0], COLORWAYS[3], COLORWAYS[1]],
     sizes: [
       'US M 8 / W 9.5',
@@ -235,7 +235,7 @@ export const PRODUCTS: Product[] = [
     tag: 'LONG DISTANCE EFFICIENCY',
     description:
       'Balanced for 26.2 miles. Incorporates a graduated flex carbon plate that delivers continuous energy return without exhausting calf muscles over high mileage. Reduces metabolic energy cost on marathon courses.',
-    image: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?auto=format&fit=crop&w=800&q=80',
+    image: '/kratos-insole-exploded.jpg',
     colorways: [COLORWAYS[0], COLORWAYS[4], COLORWAYS[1]],
     sizes: [
       'US M 7 / W 8.5',
@@ -295,7 +295,7 @@ export const PRODUCTS: Product[] = [
     tag: 'MAX ARCH RELIEF',
     description:
       'Specially designed for athletes with medium-to-high arches suffering from plantar fasciitis, tendonitis, and heel fatigue. Features a high-tensile composite polymer arch bridge with targeted Poron heel damping for all-day relief without rigid carbon stiffness.',
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=800&q=80',
+    image: '/kratos-insole-red-top.jpg',
     colorways: [COLORWAYS[0], COLORWAYS[1], COLORWAYS[4]],
     sizes: [
       'US M 7 / W 8.5',
@@ -355,7 +355,7 @@ export const PRODUCTS: Product[] = [
     tag: 'POST-RACE RECOVERY',
     description:
       'Engineered for post-race recovery, recovery walks, and work shoes. Uses high-rebound cellular gel nodes that stimulate blood circulation under the plantar fascia while dampening heel impact during rest days.',
-    image: 'https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&w=800&q=80',
+    image: '/kratos-insole-carbon-bottom.jpg',
     colorways: [COLORWAYS[0], COLORWAYS[4]],
     sizes: [
       'US M 7 / W 8.5',
@@ -420,7 +420,7 @@ export const INITIAL_ORDERS: Order[] = [
         productId: 'kratos-carbon-fiber-pro',
         name: 'Kratos Apex Carbon Pro Insole',
         price: 89.0,
-        image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80',
+        image: '/kratos-insole-red-top.jpg',
         size: 'US M 9.5 / W 11',
         colorName: 'Stealth Black / Kratos Gold',
         colorHex: '#C6A66B',
@@ -469,7 +469,7 @@ export const INITIAL_ORDERS: Order[] = [
         productId: 'kratos-court-stability',
         name: 'Kratos Court Stability Pro Insole',
         price: 89.0,
-        image: 'https://images.unsplash.com/photo-1579338559194-a162d19bf842?auto=format&fit=crop&w=400&q=80',
+        image: '/kratos-insole-red-top.jpg',
         size: 'US M 10 / W 11.5',
         colorName: 'Royal Cobalt / Carbon Plate',
         colorHex: '#2563EB',
@@ -517,7 +517,7 @@ export const INITIAL_ORDERS: Order[] = [
         productId: 'kratos-marathon-endurance',
         name: 'Kratos Endurance Carbon Insole',
         price: 94.0,
-        image: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?auto=format&fit=crop&w=400&q=80',
+        image: '/kratos-insole-exploded.jpg',
         size: 'US M 9 / W 10.5',
         colorName: 'Stealth Black / Kratos Gold',
         colorHex: '#C6A66B',

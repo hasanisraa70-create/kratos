@@ -91,12 +91,12 @@ export const HomeScreen: React.FC = () => {
           {/* Large Carbon Insole Showcase Visual */}
           <div
             onClick={() => navigateToProduct(heroProduct)}
-            className="relative z-10 w-full h-44 rounded-2xl overflow-hidden cursor-pointer group mb-4 border border-white/10 bg-[#141518]"
+            className="relative z-10 w-full h-48 rounded-2xl overflow-hidden cursor-pointer group mb-4 border border-white/10 bg-white"
           >
             <img
               src={heroProduct.image}
               alt="Kratos Carbon Fiber Performance Insole"
-              className="w-full h-full object-cover filter contrast-110 brightness-95 group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex items-end p-3.5 justify-between">
               <div>
